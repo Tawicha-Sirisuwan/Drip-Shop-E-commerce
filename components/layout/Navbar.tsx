@@ -11,7 +11,7 @@ export default function Navbar() {
         <button className="lg:hidden text-2xl hover:text-gray-600 transition-colors">
           <Menu className="w-6 h-6" />
         </button>
-        <Link href="#" className="font-display text-2xl sm:text-3xl tracking-tighter whitespace-nowrap">Drip Shop</Link>
+        <Link href="/" className="font-display text-2xl sm:text-3xl tracking-tighter whitespace-nowrap">Drip Shop</Link>
       </div>
 
       {/* 2. Center: Desktop Links (Guaranteed to be exactly in the center of the screen) */}
@@ -39,12 +39,12 @@ export default function Navbar() {
             <Search className="w-6 h-6" />
           </button>
           
-          <Link href="#" className="hover:text-gray-600 transition-colors relative">
+          <Link href="/cart" className="hover:text-gray-600 transition-colors relative">
             <ShoppingCart className="w-6 h-6" />
             <span className="absolute -top-1 -right-1 bg-[#FF3333] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">2</span>
           </Link>
           
-          <Link href="#" className="hover:text-gray-600 transition-colors">
+          <Link href="/login" className="hover:text-gray-600 transition-colors">
             <User className="w-6 h-6" />
           </Link>
         </div>

@@ -82,7 +82,7 @@ export default function LoginPage() {
         {/* ไปหน้า Register */}
         <p className="text-center text-sm text-[#666666] mt-10">
           Don't have an account?{' '}
-          <Link href="#" className="text-black font-medium underline hover:text-gray-600 transition-colors">
+          <Link href="/register" className="text-black font-medium underline hover:text-gray-600 transition-colors">
             Sign Up
           </Link>
         </p>
