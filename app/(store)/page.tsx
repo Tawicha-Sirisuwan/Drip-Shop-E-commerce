@@ -4,6 +4,7 @@ import AnnouncementBar from '../../components/layout/AnnouncementBar';
 // import Footer from '../../components/layout/Footer';
 import HeroSection from './_components/HeroSection';
 import BrandsStrip from './_components/BrandsStrip';
+import CategorySection from './_components/CategorySection';
 import NewArrivals from './_components/NewArrivals';
 
 export default function HomePage() {
@@ -32,6 +33,7 @@ export default function HomePage() {
         {/* Component เหล่านี้ถูกหั่นไปเก็บไว้ในโฟลเดอร์ _components ข้างๆ ไฟล์นี้ครับ */}
         <HeroSection />
         <BrandsStrip />
+        <CategorySection />
         <NewArrivals />
       </main>
 

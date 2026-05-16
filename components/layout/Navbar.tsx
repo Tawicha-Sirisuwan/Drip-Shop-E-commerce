@@ -17,7 +17,7 @@ export default function Navbar() {
       {/* 2. Center: Desktop Links (Guaranteed to be exactly in the center of the screen) */}
       <div className="hidden lg:flex items-center justify-center gap-6 xl:gap-8 font-medium text-base whitespace-nowrap">
         <Link href="#" className="flex items-center gap-1 hover:text-gray-600 transition-colors">
-          Shop <ChevronDown className="w-4 h-4" />
+          Shop 
         </Link>
         <Link href="#" className="hover:text-gray-600 transition-colors">On Sale</Link>
         <Link href="#" className="hover:text-gray-600 transition-colors">New Arrivals</Link>

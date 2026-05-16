@@ -49,7 +49,7 @@ export default function NewArrivals() {
       </div>
 
       <div className="mt-12 text-center">
-        <button className="border border-gray-300 text-black px-14 py-3 rounded-full font-medium hover:bg-black hover:text-white transition-colors duration-300 w-full sm:w-auto">
+        <button className="border border-gray-300 text-black px-14 py-3 rounded-full font-medium hover:bg-black hover:text-white transition-colors duration-300 w-full sm:w-auto cursor-pointer">
           View All
         </button>
       </div>
