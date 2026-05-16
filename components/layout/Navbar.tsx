@@ -21,7 +21,7 @@ export default function Navbar() {
         </Link>
         <Link href="#" className="hover:text-gray-600 transition-colors">On Sale</Link>
         <Link href="#" className="hover:text-gray-600 transition-colors">New Arrivals</Link>
-        <Link href="#" className="hover:text-gray-600 transition-colors">Brands</Link>
+        <Link href="/brands" className="hover:text-gray-600 transition-colors">Brands</Link>
       </div>
 
       {/* 3. Right: Search & Icons */}
