@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Tag, ShoppingCart, Users, TrendingUp, Settings, 
   LogOut, X 
@@ -13,6 +14,8 @@ interface AdminSidebarProps {
 }
 
 export default function AdminSidebar({ isSidebarOpen, setIsSidebarOpen }: AdminSidebarProps) {
+  const pathname = usePathname();
+
   return (
     <>
       {/* Mobile Sidebar Overlay */}
@@ -41,26 +44,26 @@ export default function AdminSidebar({ isSidebarOpen, setIsSidebarOpen }: AdminS
         <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
           <p className="px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Menu</p>
           
-          <Link href="/admin" className="flex items-center gap-3 px-3 py-2.5 bg-black text-white rounded-xl font-medium transition">
+          <Link href="/admin" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition ${pathname === '/admin' ? 'bg-black text-white' : 'text-[#666666] hover:bg-[#F0EEED] hover:text-black'}`}>
             <LayoutDashboard className="w-5 h-5" /> Dashboard
           </Link>
           
-          <Link href="#" className="flex items-center gap-3 px-3 py-2.5 text-[#666666] hover:bg-[#F0EEED] hover:text-black rounded-xl font-medium transition">
+          <Link href="/admin/products" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition ${pathname.startsWith('/admin/products') ? 'bg-black text-white' : 'text-[#666666] hover:bg-[#F0EEED] hover:text-black'}`}>
             <Tag className="w-5 h-5" /> Products
           </Link>
           
-          <Link href="#" className="flex items-center justify-between px-3 py-2.5 text-[#666666] hover:bg-[#F0EEED] hover:text-black rounded-xl font-medium transition">
+          <Link href="/admin/orders" className={`flex items-center justify-between px-3 py-2.5 rounded-xl font-medium transition ${pathname.startsWith('/admin/orders') ? 'bg-black text-white' : 'text-[#666666] hover:bg-[#F0EEED] hover:text-black'}`}>
             <div className="flex items-center gap-3">
               <ShoppingCart className="w-5 h-5" /> Orders
             </div>
             <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">12</span>
           </Link>
           
-          <Link href="#" className="flex items-center gap-3 px-3 py-2.5 text-[#666666] hover:bg-[#F0EEED] hover:text-black rounded-xl font-medium transition">
+          <Link href="/admin/customers" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition ${pathname.startsWith('/admin/customers') ? 'bg-black text-white' : 'text-[#666666] hover:bg-[#F0EEED] hover:text-black'}`}>
             <Users className="w-5 h-5" /> Customers
           </Link>
           
-          <Link href="#" className="flex items-center gap-3 px-3 py-2.5 text-[#666666] hover:bg-[#F0EEED] hover:text-black rounded-xl font-medium transition">
+          <Link href="/admin/analytics" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition ${pathname.startsWith('/admin/analytics') ? 'bg-black text-white' : 'text-[#666666] hover:bg-[#F0EEED] hover:text-black'}`}>
             <TrendingUp className="w-5 h-5" /> Analytics
           </Link>
 
