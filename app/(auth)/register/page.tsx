@@ -1,7 +1,49 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { RegisterInput, registerSchema } from '@/lib/zod-schemas';
+import { registerAction } from '@/lib/actions/auth';
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
+  });
+
+  const onSubmit = async (data: RegisterInput) => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const result = await registerAction(data);
+      if (result.error) {
+        setError(result.error);
+      } else if (result.success) {
+        setSuccess(result.success);
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
+      }
+    } catch (err) {
+      setError("เกิดข้อผิดพลาด โปรดลองอีกครั้ง");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="flex-1 flex flex-col justify-center items-center py-12 sm:py-24 px-4 bg-white">
       
@@ -21,31 +63,33 @@ export default function RegisterPage() {
           Join us to start shopping and get exclusive offers.
         </p>
 
-        <form className="space-y-5">
-          {/* ชื่อและนามสกุล (แบ่ง 2 คอลัมน์) */}
-        
+        <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+          {/* ชื่อ */}
+          <div>
             <div className="relative">
               <input 
                 type="text" 
                 id="username"
-                className="w-full bg-[#F0F0F0] text-black rounded-full px-6 py-4 outline-none focus:ring-1 focus:ring-gray-400 transition-all placeholder-gray-500 text-sm sm:text-base"
-                placeholder="Username"
-                required
+                {...register("name")}
+                className={`w-full bg-[#F0F0F0] text-black rounded-full px-6 py-4 outline-none focus:ring-1 focus:ring-gray-400 transition-all placeholder-gray-500 text-sm sm:text-base ${errors.name ? 'border border-red-500' : ''}`}
+                placeholder="Name"
               />
             </div>
+            {errors.name && <p className="text-red-500 text-xs mt-2 ml-4">{errors.name.message}</p>}
+          </div>
  
-
           {/* ช่องกรอก Email */}
           <div>
             <div className="relative">
               <input 
                 type="email" 
                 id="email"
-                className="w-full bg-[#F0F0F0] text-black rounded-full px-6 py-4 outline-none focus:ring-1 focus:ring-gray-400 transition-all placeholder-gray-500 text-sm sm:text-base"
+                {...register("email")}
+                className={`w-full bg-[#F0F0F0] text-black rounded-full px-6 py-4 outline-none focus:ring-1 focus:ring-gray-400 transition-all placeholder-gray-500 text-sm sm:text-base ${errors.email ? 'border border-red-500' : ''}`}
                 placeholder="Email Address"
-                required
               />
             </div>
+            {errors.email && <p className="text-red-500 text-xs mt-2 ml-4">{errors.email.message}</p>}
           </div>
 
           {/* ช่องกรอก Password */}
@@ -54,11 +98,12 @@ export default function RegisterPage() {
               <input 
                 type="password" 
                 id="password"
-                className="w-full bg-[#F0F0F0] text-black rounded-full px-6 py-4 outline-none focus:ring-1 focus:ring-gray-400 transition-all placeholder-gray-500 text-sm sm:text-base"
+                {...register("password")}
+                className={`w-full bg-[#F0F0F0] text-black rounded-full px-6 py-4 outline-none focus:ring-1 focus:ring-gray-400 transition-all placeholder-gray-500 text-sm sm:text-base ${errors.password ? 'border border-red-500' : ''}`}
                 placeholder="Password"
-                required
               />
             </div>
+            {errors.password && <p className="text-red-500 text-xs mt-2 ml-4">{errors.password.message}</p>}
           </div>
 
           {/* ช่องกรอก Confirm Password */}
@@ -67,19 +112,24 @@ export default function RegisterPage() {
               <input 
                 type="password" 
                 id="confirmPassword"
-                className="w-full bg-[#F0F0F0] text-black rounded-full px-6 py-4 outline-none focus:ring-1 focus:ring-gray-400 transition-all placeholder-gray-500 text-sm sm:text-base"
+                {...register("confirmPassword")}
+                className={`w-full bg-[#F0F0F0] text-black rounded-full px-6 py-4 outline-none focus:ring-1 focus:ring-gray-400 transition-all placeholder-gray-500 text-sm sm:text-base ${errors.confirmPassword ? 'border border-red-500' : ''}`}
                 placeholder="Confirm Password"
-                required
               />
             </div>
+            {errors.confirmPassword && <p className="text-red-500 text-xs mt-2 ml-4">{errors.confirmPassword.message}</p>}
           </div>
+
+          {error && <div className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-xl">{error}</div>}
+          {success && <div className="text-green-600 text-sm text-center bg-green-50 p-3 rounded-xl">{success}</div>}
 
           {/* ปุ่ม Sign Up */}
           <button 
             type="submit" 
-            className="w-full bg-black text-white rounded-full py-4 font-medium text-base hover:bg-gray-800 transition-colors mt-2 cursor-pointer"
+            disabled={loading}
+            className="w-full bg-black text-white rounded-full py-4 font-medium text-base hover:bg-gray-800 transition-colors mt-2 cursor-pointer disabled:bg-gray-400"
           >
-            Create Account
+            {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 

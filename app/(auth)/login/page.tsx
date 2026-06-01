@@ -1,7 +1,50 @@
-import React from 'react';
+"use client";
+
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { LoginInput, loginSchema } from '@/lib/zod-schemas';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginInput) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: data.email,
+        password: data.password,
+      });
+
+      if (result?.error) {
+        setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+      } else {
+        router.push("/");
+        router.refresh();
+      }
+    } catch (err) {
+      setError("เกิดข้อผิดพลาด โปรดลองอีกครั้ง");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="flex-1 flex flex-col justify-center items-center py-12 sm:py-24 px-4 bg-white">
       
@@ -21,18 +64,19 @@ export default function LoginPage() {
           Enter your details to access your account.
         </p>
 
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
           {/* ช่องกรอก Email */}
           <div>
             <div className="relative">
               <input 
                 type="email" 
                 id="email"
-                className="w-full bg-[#F0F0F0] text-black rounded-full px-6 py-4 outline-none focus:ring-1 focus:ring-gray-400 transition-all placeholder-gray-500 text-sm sm:text-base"
+                {...register("email")}
+                className={`w-full bg-[#F0F0F0] text-black rounded-full px-6 py-4 outline-none focus:ring-1 focus:ring-gray-400 transition-all placeholder-gray-500 text-sm sm:text-base ${errors.email ? 'border border-red-500' : ''}`}
                 placeholder="Email Address"
-                required
               />
             </div>
+            {errors.email && <p className="text-red-500 text-xs mt-2 ml-4">{errors.email.message}</p>}
           </div>
 
           {/* ช่องกรอก Password */}
@@ -41,11 +85,13 @@ export default function LoginPage() {
               <input 
                 type="password" 
                 id="password"
-                className="w-full bg-[#F0F0F0] text-black rounded-full px-6 py-4 outline-none focus:ring-1 focus:ring-gray-400 transition-all placeholder-gray-500 text-sm sm:text-base"
+                {...register("password")}
+                className={`w-full bg-[#F0F0F0] text-black rounded-full px-6 py-4 outline-none focus:ring-1 focus:ring-gray-400 transition-all placeholder-gray-500 text-sm sm:text-base ${errors.password ? 'border border-red-500' : ''}`}
                 placeholder="Password"
-                required
               />
             </div>
+            {errors.password && <p className="text-red-500 text-xs mt-2 ml-4">{errors.password.message}</p>}
+            
             <div className="flex justify-end mt-2 mr-2">
               <Link href="#" className="text-xs text-[#666666] hover:text-black font-medium underline transition-colors">
                 Forgot password?
@@ -53,12 +99,15 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {error && <div className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-xl">{error}</div>}
+
           {/* ปุ่ม Sign In */}
           <button 
             type="submit" 
-            className="cursor-pointer w-full bg-black text-white rounded-full py-4 font-medium text-base hover:bg-gray-800 transition-colors mt-2"
+            disabled={loading}
+            className="cursor-pointer w-full bg-black text-white rounded-full py-4 font-medium text-base hover:bg-gray-800 transition-colors mt-2 disabled:bg-gray-400"
           >
-            Sign In
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
