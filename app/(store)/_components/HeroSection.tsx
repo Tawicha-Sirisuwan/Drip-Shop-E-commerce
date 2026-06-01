@@ -7,31 +7,31 @@ export default function HeroSection() {
         
         <div className="w-full lg:w-1/2 py-10 lg:py-24 relative z-10">
           <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl text-black mb-6 leading-[1.05]">
-            FIND CLOTHES<br />
-            THAT MATCHES<br />
-            YOUR STYLE
+            ค้นหาสไตล์<br />
+            เสื้อผ้าที่เป็น<br />
+            ตัวคุณ
           </h1>
           <p className="text-[#666666] text-sm sm:text-base mb-8 max-w-md leading-relaxed">
-            Browse through our diverse range of meticulously crafted garments, designed to bring out your individuality and cater to your sense of style.
+            เลือกชมเสื้อผ้าคุณภาพสูงหลากหลายสไตล์ที่ออกแบบมาเพื่อคุณ และสะท้อนตัวตนในแบบที่คุณเป็น
           </p>
           <button className="bg-black text-white px-12 py-4 rounded-full w-full sm:w-auto font-medium hover:bg-gray-800 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 duration-200">
-            Shop Now
+            ช้อปเลย
           </button>
 
           <div className="flex flex-wrap items-center gap-6 sm:gap-10 mt-12">
             <div>
               <h3 className="font-display text-3xl sm:text-4xl">200+</h3>
-              <p className="text-xs sm:text-sm text-[#666666] mt-1">International Brands</p>
+              <p className="text-xs sm:text-sm text-[#666666] mt-1">แบรนด์ระดับโลก</p>
             </div>
             <div className="h-12 w-px bg-gray-300 hidden sm:block"></div>
             <div>
               <h3 className="font-display text-3xl sm:text-4xl">2,000+</h3>
-              <p className="text-xs sm:text-sm text-[#666666] mt-1">High-Quality Products</p>
+              <p className="text-xs sm:text-sm text-[#666666] mt-1">สินค้าคุณภาพสูง</p>
             </div>
             <div className="h-12 w-px bg-gray-300 hidden sm:block"></div>
             <div>
               <h3 className="font-display text-3xl sm:text-4xl">30,000+</h3>
-              <p className="text-xs sm:text-sm text-[#666666] mt-1">Happy Customers</p>
+              <p className="text-xs sm:text-sm text-[#666666] mt-1">ลูกค้าที่ไว้วางใจ</p>
             </div>
           </div>
         </div>

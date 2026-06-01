@@ -2,10 +2,10 @@ import React from 'react';
 import { Star, StarHalf } from 'lucide-react';
 
 const NEW_ARRIVALS = [
-  { id: 1, name: "T-shirt with Tape Details", image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80", rating: 4.5, price: 120, originalPrice: null, discount: null },
-  { id: 2, name: "Skinny Fit Jeans", image: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=600&q=80", rating: 3.5, price: 240, originalPrice: 260, discount: "-20%" },
-  { id: 3, name: "Checkered Shirt", image: "https://images.unsplash.com/photo-1596755094514-f87e32f85e2c?auto=format&fit=crop&w=600&q=80", rating: 4.5, price: 180, originalPrice: null, discount: null },
-  { id: 4, name: "Sleeve Striped T-shirt", image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=600&q=80", rating: 4.7, price: 130, originalPrice: 160, discount: "-30%", hiddenMobile: true }
+  { id: 1, name: "เสื้อยืดแต่งแถบ", image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80", rating: 4.5, price: 120, originalPrice: null, discount: null },
+  { id: 2, name: "กางเกงยีนส์ทรงสกินนี่", image: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=600&q=80", rating: 3.5, price: 240, originalPrice: 260, discount: "-20%" },
+  { id: 3, name: "เสื้อเชิ้ตลายตาราง", image: "https://images.unsplash.com/photo-1596755094514-f87e32f85e2c?auto=format&fit=crop&w=600&q=80", rating: 4.5, price: 180, originalPrice: null, discount: null },
+  { id: 4, name: "เสื้อยืดแขนลายทาง", image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=600&q=80", rating: 4.7, price: 130, originalPrice: 160, discount: "-30%", hiddenMobile: true }
 ];
 
 const RatingStars = ({ rating }: { rating: number }) => {
@@ -24,7 +24,7 @@ const RatingStars = ({ rating }: { rating: number }) => {
 export default function NewArrivals() {
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-      <h2 className="font-display text-4xl sm:text-5xl text-center mb-12 sm:mb-16">NEW ARRIVALS</h2>
+      <h2 className="font-display text-4xl sm:text-5xl text-center mb-12 sm:mb-16">สินค้าใหม่ล่าสุด</h2>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
         {NEW_ARRIVALS.map((product) => (
@@ -40,8 +40,8 @@ export default function NewArrivals() {
             </div>
             
             <div className="flex items-center gap-3">
-              <span className="font-bold text-xl sm:text-2xl">${product.price}</span>
-              {product.originalPrice && <span className="font-bold text-lg text-[#666666] line-through">${product.originalPrice}</span>}
+              <span className="font-bold text-xl sm:text-2xl">฿{product.price}</span>
+              {product.originalPrice && <span className="font-bold text-lg text-[#666666] line-through">฿{product.originalPrice}</span>}
               {product.discount && <span className="bg-[#FF3333]/10 text-[#FF3333] text-xs font-semibold px-2 sm:px-3 py-1 rounded-full">{product.discount}</span>}
             </div>
           </div>
@@ -50,7 +50,7 @@ export default function NewArrivals() {
 
       <div className="mt-12 text-center">
         <button className="border border-gray-300 text-black px-14 py-3 rounded-full font-medium hover:bg-black hover:text-white transition-colors duration-300 w-full sm:w-auto cursor-pointer">
-          View All
+          ดูทั้งหมด
         </button>
       </div>
     </section>

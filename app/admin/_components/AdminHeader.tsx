@@ -19,9 +19,9 @@ export default function AdminHeader({ setIsSidebarOpen }: AdminHeaderProps) {
         
         <div className="hidden lg:flex items-center h-full">
           <Link href="/admin" className="font-display text-2xl tracking-tighter flex items-center pr-6 h-full border-r border-[#E5E5E5]">
-            Drip Shop<span className="text-xs font-sans font-bold text-[#666666] ml-2 tracking-normal uppercase mt-1">Admin</span>
+            Drip Shop<span className="text-xs font-sans font-bold text-[#666666] ml-2 tracking-normal uppercase mt-1">ผู้ดูแลระบบ</span>
           </Link>
-          <h1 className="ml-6 font-display text-xl sm:text-2xl uppercase">Overview</h1>
+          <h1 className="ml-6 font-display text-xl sm:text-2xl uppercase">ภาพรวมระบบ</h1>
         </div>
 
         {/* Mobile Logo & Title */}
@@ -29,14 +29,14 @@ export default function AdminHeader({ setIsSidebarOpen }: AdminHeaderProps) {
           <Link href="/admin" className="font-display text-xl tracking-tighter flex items-center pr-4 border-r border-[#E5E5E5] h-10">
             Drip Shop
           </Link>
-          <h1 className="ml-4 font-display text-lg uppercase">Overview</h1>
+          <h1 className="ml-4 font-display text-lg uppercase">ภาพรวม</h1>
         </div>
       </div>
 
       <div className="flex items-center gap-4 sm:gap-6 h-full py-4">
         <div className="hidden md:flex items-center bg-[#F0EEED] rounded-full px-4 py-2 w-56 lg:w-80 transition-all focus-within:ring-2 focus-within:ring-gray-200">
           <Search className="w-5 h-5 text-gray-500" />
-          <input type="text" placeholder="Search orders, products..." className="bg-transparent border-none outline-none ml-2 w-full text-sm text-black" />
+          <input type="text" placeholder="ค้นหาคำสั่งซื้อ, สินค้า..." className="bg-transparent border-none outline-none ml-2 w-full text-sm text-black" />
         </div>
 
         <button className="relative text-gray-500 hover:text-black transition cursor-pointer">
@@ -49,8 +49,8 @@ export default function AdminHeader({ setIsSidebarOpen }: AdminHeaderProps) {
             <img src="https://i.pravatar.cc/150?img=33" alt="Admin" className="w-full h-full object-cover" />
           </div>
           <div className="hidden sm:block text-sm">
-            <p className="font-bold text-black leading-tight">John Doe</p>
-            <p className="text-[#666666] text-xs mt-0.5">Super Admin</p>
+            <p className="font-bold text-black leading-tight">แอดมินใจดี</p>
+            <p className="text-[#666666] text-xs mt-0.5">ผู้ดูแลระบบสูงสุด</p>
           </div>
           <ChevronDown className="w-4 h-4 text-gray-400 hidden sm:block" />
         </div>

@@ -28,7 +28,7 @@ export default function CategorySection() {
       {/* Header */}
       <div className="flex justify-center items-center mb-10 sm:mb-14">
         <h2 className="font-display text-3xl sm:text-4xl text-black uppercase tracking-wide">
-          BROWSE BY CATEGORY
+          เลือกชมตามหมวดหมู่
         </h2>
       </div>
       
