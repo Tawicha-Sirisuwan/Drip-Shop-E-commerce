@@ -69,7 +69,7 @@ export default function AdminSidebar({ isSidebarOpen, setIsSidebarOpen }: AdminS
 
           <div className="pt-6 mt-6 border-t border-[#E5E5E5]">
             <p className="px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Settings</p>
-            <Link href="#" className="flex items-center gap-3 px-3 py-2.5 text-[#666666] hover:bg-[#F0EEED] hover:text-black rounded-xl font-medium transition">
+            <Link href="/admin/settings" className="flex items-center gap-3 px-3 py-2.5 text-[#666666] hover:bg-[#F0EEED] hover:text-black rounded-xl font-medium transition">
               <Settings className="w-5 h-5" /> Store Settings
             </Link>
             <Link href="/" className="flex items-center gap-3 px-3 py-2.5 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-xl font-medium transition mt-2">
