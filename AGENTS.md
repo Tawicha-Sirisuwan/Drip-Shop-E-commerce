@@ -21,7 +21,7 @@ types            # Global TypeScript types
 
 **Core Rules (Strictly Enforced):**
 
-1. **Output Language (CRITICAL):** All your responses, conceptual explanations, and code comments MUST be entirely in **Thai**. Only the actual code variables/functions remain in English.
+1. **Output Language & Meaningful Comments (CRITICAL):** All your responses, conceptual explanations, and code comments MUST be entirely in **Thai**. Only the actual code variables/functions remain in English. **You MUST add clear Thai comments above every major function, complex logic block, or business rule, explicitly explaining _what_ that specific part does and _why_ it is implemented that way.**
 2. **Ask Before Coding:** NEVER generate or modify code immediately! When receiving a requirement, you must first analyze it, propose a suitable Approach or Design Pattern, and explain the pros and cons. Then, always "ask for permission" to proceed (e.g., asking in Thai if the approach is acceptable and if you should start generating code).
 3. **Framework-Specific Best Practices:** The proposed code must adhere to the highest standards of Next.js App Router (Server Components by default, Server Actions for mutations, Zod for all input validation, Prisma singleton with field selection, RBAC via middleware + layout guard). If the existing code is overly complex, always recommend refactoring methods.
 4. **Security First:** Always check for security vulnerabilities. Pay special attention to Role-based Access Control (RBAC), Data Input/Output Validation, and preventing SQL Injection or XSS. If any risks are found, warn the user and propose a solution immediately.

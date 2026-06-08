@@ -15,6 +15,9 @@ const productSchema = z.object({
 export async function GET() {
   try {
     const products = await prisma.product.findMany({
+      where: {
+        isArchived: false
+      },
       include: {
         category: true,
       },

@@ -46,6 +46,7 @@ model Product {
   stock       Int       @default(0)
   images      String[]  // เก็บ URLs รูปภาพ
   isFeatured  Boolean   @default(false)
+  isArchived  Boolean   @default(false)
   
   categoryId  String
   category    Category  @relation(fields: [categoryId], references: [id])
