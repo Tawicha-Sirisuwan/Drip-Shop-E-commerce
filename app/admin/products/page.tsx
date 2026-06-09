@@ -2,15 +2,57 @@ import Link from 'next/link'
 import { PlusCircle, Filter, Package, AlertCircle } from 'lucide-react'
 import prisma from '@/lib/prisma'
 import { ProductActions } from './_components/ProductActions'
+import { ProductSearch } from './_components/ProductSearch'
+import { ProductFilters } from './_components/ProductFilters'
+import { ProductPagination } from './_components/ProductPagination'
+import { Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
-export default async function AdminProductsPage() {
-  const products = await prisma.product.findMany({
-    where: { isArchived: false },
-    include: { category: true },
-    orderBy: { createdAt: 'desc' }
-  })
+export default async function AdminProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const resolvedParams = await searchParams
+  
+  // 1. รับค่าตัวแปรจาก URL Search Params เพื่อนำไปทำ Query Filtering (Server-Side)
+  const query = typeof resolvedParams.q === 'string' ? resolvedParams.q : ''
+  const status = typeof resolvedParams.status === 'string' ? resolvedParams.status : 'all'
+  const page = typeof resolvedParams.page === 'string' ? parseInt(resolvedParams.page) : 1
+  const limit = 10 // จำนวนสินค้าต่อหน้า
+  
+  // 2. สร้าง Prisma Where Condition (เงื่อนไขการค้นหา) อย่างยืดหยุ่น
+  // การใช้ Server-Side Query แบบนี้ช่วยป้องกันการส่งข้อมูลที่ไม่ได้ใช้ไปยัง Client 
+  const whereCondition: Prisma.ProductWhereInput = {
+    isArchived: false,
+    ...(query ? {
+      OR: [
+        { name: { contains: query, mode: 'insensitive' } },
+        { slug: { contains: query, mode: 'insensitive' } },
+      ]
+    } : {}),
+    ...(status === 'in-stock' ? { stock: { gt: 0 } } : {}),
+    ...(status === 'out-of-stock' ? { stock: { equals: 0 } } : {}),
+  }
+
+  // 3. ใช้ Transaction เพื่อ Query ข้อมูล 2 อย่างพร้อมกัน (จำนวนรวม + ข้อมูลจริง)
+  // วิธีนี้ลดเวลาที่ต้องรอ Database Query (ลด Latency) เมื่อเทียบกับการทำทีละคำสั่ง
+  const [totalProducts, products] = await prisma.$transaction([
+    prisma.product.count({ where: whereCondition }),
+    prisma.product.findMany({
+      where: whereCondition,
+      include: { category: true },
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+    })
+  ])
+
+  // 4. คำนวณตัวเลข Pagination
+  const totalPages = Math.ceil(totalProducts / limit)
+  const startItem = totalProducts === 0 ? 0 : (page - 1) * limit + 1
+  const endItem = Math.min(page * limit, totalProducts)
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -25,22 +67,16 @@ export default async function AdminProductsPage() {
         </Link>
       </div>
 
-      {/* Filters Bar */}
+      {/* Filters Bar (Client Components ถูกเรียกใช้งานที่นี่) */}
       <div className="bg-white p-4 rounded-t-2xl border border-[#E5E5E5] border-b-0 flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Status Tabs */}
-        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto no-scrollbar pb-1 md:pb-0">
-          <Link href="/admin/products" className="px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition bg-[#F0EEED] text-black">All Products</Link>
-          <Link href="#" className="px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition text-[#666666] hover:bg-[#F0EEED] hover:text-black">
-            In Stock
-          </Link>
-          <Link href="#" className="px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition text-[#666666] hover:bg-[#F0EEED] hover:text-black">
-            Out of Stock
-          </Link>
-        </div>
+        <ProductFilters />
         
-        {/* Filter Buttons */}
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <button className="border border-[#E5E5E5] text-black px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-gray-50 transition w-full md:w-auto justify-center">
+        {/* Search & Filter Button */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <ProductSearch />
+          {/* ปุ่ม Filters เผื่อสำหรับเปิด Modal/Drawer ขั้นสูงในอนาคต */}
+          <button className="border border-[#E5E5E5] text-black px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-gray-50 transition w-full sm:w-auto justify-center">
             <Filter className="w-4 h-4" /> Filters
           </button>
         </div>
@@ -65,7 +101,7 @@ export default async function AdminProductsPage() {
               {products.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-10 text-center text-[#666666]">
-                    ไม่พบสินค้าในระบบ คลิก "Add Product" เพื่อสร้างสินค้าใหม่
+                    ไม่พบสินค้าที่ค้นหา
                   </td>
                 </tr>
               ) : (
@@ -79,7 +115,7 @@ export default async function AdminProductsPage() {
                       {product.category?.name || 'Uncategorized'}
                     </td>
                     <td className="px-6 py-4 font-medium text-black">
-                      ${Number(product.price).toFixed(2)}
+                      ฿{Number(product.price).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 text-gray-500">
                       {product.stock}
@@ -105,19 +141,13 @@ export default async function AdminProductsPage() {
           </table>
         </div>
 
-        {/* Pagination (Static UI matching orders page) */}
-        {products.length > 0 && (
-          <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-            <p className="text-sm text-[#666666]">Showing <span className="font-medium text-black">1</span> to <span className="font-medium text-black">{products.length}</span> of <span className="font-medium text-black">{products.length}</span> results</p>
-            <div className="flex items-center gap-1">
-              <button className="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-400 hover:text-black hover:border-gray-300 disabled:opacity-50" disabled>
-                &lt;
-              </button>
-              <button className="w-8 h-8 flex items-center justify-center rounded bg-black text-white font-medium text-sm">1</button>
-              <button className="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-600 hover:text-black hover:border-gray-300 disabled:opacity-50 transition" disabled>
-                &gt;
-              </button>
-            </div>
+        {/* Pagination UI */}
+        {totalProducts > 0 && (
+          <div className="px-6 py-4 border-t border-[#E5E5E5] flex items-center justify-between">
+            <p className="text-sm text-[#666666]">
+              Showing <span className="font-medium text-black">{startItem}</span> to <span className="font-medium text-black">{endItem}</span> of <span className="font-medium text-black">{totalProducts}</span> results
+            </p>
+            <ProductPagination totalPages={totalPages} currentPage={page} />
           </div>
         )}
       </div>
