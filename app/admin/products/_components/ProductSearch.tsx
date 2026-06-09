@@ -15,6 +15,10 @@ export function ProductSearch() {
   // ใช้วิธีการ Debounce (หน่วงเวลา) ป้องกันการยิง Server Request รัวๆ ทุกครั้งที่พิมพ์ตัวอักษร
   // ลดภาระ Database (Performance Optimization)
   useEffect(() => {
+    // ป้องกัน Infinite Loop: เช็คว่าคำค้นหาในช่องกรอก (query) ต่างจากใน URL (q) จริงๆ หรือไม่
+    const currentQ = searchParams.get('q') || ''
+    if (query === currentQ) return
+
     const timer = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString())
       if (query) {
