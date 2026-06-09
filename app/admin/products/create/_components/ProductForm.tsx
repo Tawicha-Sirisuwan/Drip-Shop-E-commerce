@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Package, Tag, FileText, LayoutGrid, Info, Check, Image as ImageIcon } from 'lucide-react'
+import { Package, Tag, FileText, LayoutGrid, Info, Check, Image as ImageIcon, X, UploadCloud } from 'lucide-react'
 
 const productSchema = z.object({
   name: z.string().min(1, 'Product name is required'),
@@ -15,6 +15,7 @@ const productSchema = z.object({
   stock: z.number().int().nonnegative('Stock cannot be negative'),
   categoryId: z.string().min(1, 'Category is required'),
   isFeatured: z.boolean().default(false),
+  images: z.array(z.string()).default([]),
 })
 
 type ProductFormValues = z.infer<typeof productSchema>
@@ -39,10 +40,32 @@ export function ProductForm({ categories, initialData }: { categories: any[], in
       stock: 0,
       categoryId: '',
       isFeatured: false,
+      images: [],
     }
   })
 
   const isFeatured = watch('isFeatured')
+  const currentImages = watch('images') || []
+
+  // ฟังก์ชันแปลงไฟล์เป็น Base64
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const base64String = reader.result as string
+      setValue('images', [...currentImages, base64String], { shouldValidate: true })
+      // รีเซ็ตค่า input เพื่อให้สามารถเลือกไฟล์เดิมได้อีก
+      e.target.value = ''
+    }
+    reader.readAsDataURL(file)
+  }
+
+  // ฟังก์ชันลบรูป
+  const handleRemoveImage = (indexToRemove: number) => {
+    setValue('images', currentImages.filter((_, idx) => idx !== indexToRemove), { shouldValidate: true })
+  }
 
   const onSubmit: SubmitHandler<ProductFormValues> = async (data) => {
     try {
@@ -59,8 +82,19 @@ export function ProductForm({ categories, initialData }: { categories: any[], in
       })
 
       if (!res.ok) {
-        const errorData = await res.json()
-        throw new Error(errorData.error || `Failed to ${initialData ? 'update' : 'create'} product`)
+        // ดัก Error กรณีไฟล์ใหญ่เกินไป (Payload Too Large) หรือ Server ส่งเป็น HTML กลับมา
+        let errorMessage = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล'
+        try {
+          const errorData = await res.json()
+          errorMessage = errorData.error || errorMessage
+        } catch (e) {
+          if (res.status === 413) {
+            errorMessage = 'ขนาดรูปภาพใหญ่เกินไป (เกินขีดจำกัดของเซิร์ฟเวอร์)'
+          } else {
+            errorMessage = `Server Error (${res.status})`
+          }
+        }
+        throw new Error(errorMessage)
       }
 
       router.push('/admin/products')
@@ -132,18 +166,54 @@ export function ProductForm({ categories, initialData }: { categories: any[], in
             </div>
           </div>
 
-          {/* Media Section (Placeholder for future) */}
+          {/* Media Section (Base64 Implementation) */}
           <div className="bg-white border border-[#E5E5E5] rounded-xl p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)]">
             <h2 className="text-lg font-bold text-black mb-5 flex items-center gap-2">
               <ImageIcon className="w-5 h-5 text-neutral-400" />
               Media
             </h2>
-            <div className="border-2 border-dashed border-[#E5E5E5] rounded-xl p-8 flex flex-col items-center justify-center text-center bg-neutral-50 hover:bg-neutral-100 transition-colors cursor-pointer group">
-              <div className="w-12 h-12 bg-white border border-[#E5E5E5] rounded-full shadow-sm flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                <ImageIcon className="w-5 h-5 text-neutral-400" />
+            
+            {/* Image Previews */}
+            {currentImages.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+                {currentImages.map((img, idx) => (
+                  <div key={idx} className="relative group rounded-lg overflow-hidden border border-[#E5E5E5] aspect-square bg-gray-50 flex items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={img} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <button 
+                        type="button"
+                        onClick={() => handleRemoveImage(idx)}
+                        className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <p className="text-sm font-medium text-black">Drag and drop images here</p>
-              <p className="text-xs text-neutral-500 mt-1">PNG, JPG up to 5MB (Coming soon)</p>
+            )}
+
+            {/* Upload Button */}
+            <div>
+              <input
+                type="file"
+                id="image-upload"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageUpload}
+              />
+              <label 
+                htmlFor="image-upload"
+                className="border-2 border-dashed border-[#E5E5E5] rounded-xl p-8 flex flex-col items-center justify-center text-center bg-neutral-50 hover:bg-neutral-100 transition-colors cursor-pointer group w-full"
+              >
+                <div className="w-12 h-12 bg-white border border-[#E5E5E5] rounded-full shadow-sm flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+                  <UploadCloud className="w-5 h-5 text-neutral-400" />
+                </div>
+                <p className="text-sm font-medium text-black">Click to upload image</p>
+                <p className="text-xs text-neutral-500 mt-1">PNG, JPG (Base64 Mode)</p>
+              </label>
+              {errors.images && <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1"><Info className="w-3.5 h-3.5" />{errors.images.message}</p>}
             </div>
           </div>
 

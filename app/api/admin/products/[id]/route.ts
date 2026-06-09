@@ -10,6 +10,7 @@ const productSchema = z.object({
   stock: z.number().int().nonnegative('Stock cannot be negative'),
   categoryId: z.string().min(1, 'Category is required'),
   isFeatured: z.boolean().default(false),
+  images: z.array(z.string()).default([]),
 })
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {

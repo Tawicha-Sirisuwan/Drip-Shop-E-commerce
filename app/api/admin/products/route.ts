@@ -10,6 +10,7 @@ const productSchema = z.object({
   stock: z.number().int().nonnegative('Stock cannot be negative'),
   categoryId: z.string().min(1, 'Category is required'),
   isFeatured: z.boolean().default(false),
+  images: z.array(z.string()).default([]),
 })
 
 export async function GET() {
@@ -38,10 +39,7 @@ export async function POST(req: Request) {
     const validatedData = productSchema.parse(body)
 
     const newProduct = await prisma.product.create({
-      data: {
-        ...validatedData,
-        images: [], // TODO: Implement image upload later
-      }
+      data: validatedData
     })
 
     return NextResponse.json(newProduct, { status: 201 })
