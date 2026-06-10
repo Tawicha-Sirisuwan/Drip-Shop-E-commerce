@@ -316,14 +316,14 @@ export function ProductForm({ categories, initialData }: { categories: any[], in
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-5 py-2.5 text-sm font-medium text-neutral-700 bg-white border border-[#E5E5E5] rounded-lg hover:bg-neutral-50 hover:text-black transition-colors"
+          className="px-5 py-2.5 text-sm font-medium text-neutral-700 bg-white border border-[#E5E5E5] rounded-lg hover:bg-neutral-50 hover:text-black transition-colors cursor-pointer"
         >
           Discard
         </button>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-5 py-2.5 text-sm font-medium text-white bg-black rounded-lg hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 transition-all flex items-center gap-2"
+          className="px-5 py-2.5 text-sm font-medium text-white bg-black rounded-lg hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 transition-all flex items-center gap-2 cursor-pointer"
         >
           {isSubmitting ? (
             <>
