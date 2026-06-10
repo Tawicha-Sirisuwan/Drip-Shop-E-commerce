@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Tag, ShoppingCart, Users, TrendingUp, Settings, 
-  LogOut, X 
+  LogOut, X, Layers
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -49,7 +49,11 @@ export default function AdminSidebar({ isSidebarOpen, setIsSidebarOpen }: AdminS
           </Link>
           
           <Link href="/admin/products" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition ${pathname.startsWith('/admin/products') ? 'bg-black text-white' : 'text-[#666666] hover:bg-[#F0EEED] hover:text-black'}`}>
-            <Tag className="w-5 h-5" /> จัดการสินค้า
+            <Tag className="w-5 h-5" /> สินค้า
+          </Link>
+
+          <Link href="/admin/categories" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition ${pathname.startsWith('/admin/categories') ? 'bg-black text-white' : 'text-[#666666] hover:bg-[#F0EEED] hover:text-black'}`}>
+            <Layers className="w-5 h-5" /> หมวดหมู่
           </Link>
           
           <Link href="/admin/orders" className={`flex items-center justify-between px-3 py-2.5 rounded-xl font-medium transition ${pathname.startsWith('/admin/orders') ? 'bg-black text-white' : 'text-[#666666] hover:bg-[#F0EEED] hover:text-black'}`}>
