@@ -24,6 +24,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   
   orders        Order[]
+  addresses     Address[]
 }
 
 model Category {
@@ -72,11 +73,33 @@ model Order {
   total           Decimal     @db.Decimal(10, 2)
   status          OrderStatus @default(PENDING)
   stripeSessionId String?     @unique
+  shippingAddress String?     // เก็บข้อมูลที่อยู่จัดส่งแบบ Text/JSON ตอนสั่งซื้อ
   
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   
   orderItems      OrderItem[]
+}
+
+model Address {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name        String   // ชื่อผู้รับ
+  phone       String   // เบอร์โทรศัพท์ผู้รับ
+  street      String   // บ้านเลขที่, หมู่, ซอย, ถนน
+  subdistrict String   // แขวง/ตำบล
+  district    String   // เขต/อำเภอ
+  province    String   // จังหวัด
+  postalCode  String   // รหัสไปรษณีย์
+  
+  isDefault   Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model OrderItem {

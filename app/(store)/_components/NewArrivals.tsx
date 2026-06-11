@@ -1,5 +1,6 @@
 import React from 'react';
 import { Star, StarHalf } from 'lucide-react';
+import AddToCartButton from '@/components/cart/AddToCartButton';
 
 const NEW_ARRIVALS = [
   { id: 1, name: "เสื้อยืดแต่งแถบ", image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80", rating: 4.5, price: 120, originalPrice: null, discount: null },
@@ -44,6 +45,8 @@ export default function NewArrivals() {
               {product.originalPrice && <span className="font-bold text-lg text-[#666666] line-through">฿{product.originalPrice}</span>}
               {product.discount && <span className="bg-[#FF3333]/10 text-[#FF3333] text-xs font-semibold px-2 sm:px-3 py-1 rounded-full">{product.discount}</span>}
             </div>
+
+            <AddToCartButton product={{ id: String(product.id), name: product.name, price: product.price, image: product.image }} />
           </div>
         ))}
       </div>

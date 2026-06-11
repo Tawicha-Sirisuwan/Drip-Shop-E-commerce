@@ -1,8 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
-import { Search, ShoppingCart, User, Menu, ChevronDown } from 'lucide-react';
+import { Search, User, Menu, ChevronDown } from 'lucide-react';
 import { auth } from "@/auth";
 import UserDropdown from './UserDropdown';
+import CartIcon from '../cart/CartIcon';
 
 export default async function Navbar() {
   const session = await auth();
@@ -42,10 +43,7 @@ export default async function Navbar() {
             <Search className="w-6 h-6" />
           </button>
           
-          <Link href="/cart" className="hover:text-gray-600 transition-colors relative">
-            <ShoppingCart className="w-6 h-6" />
-            <span className="absolute -top-1 -right-1 bg-[#FF3333] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">2</span>
-          </Link>
+          <CartIcon />
           
           {session && session.user ? (
             <UserDropdown user={session.user} />
