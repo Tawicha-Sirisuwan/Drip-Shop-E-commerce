@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { User, Package, LogOut } from 'lucide-react';
+import { User, Package, LogOut, MapPin } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
 export default function AccountSidebar() {
@@ -43,6 +43,18 @@ export default function AccountSidebar() {
           >
             <Package className="w-5 h-5" />
             ประวัติคำสั่งซื้อ
+          </Link>
+
+          <Link 
+            href="/account/addresses"
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
+              pathname.startsWith('/account/addresses') 
+                ? 'bg-black text-white' 
+                : 'text-[#666666] hover:bg-[#F0EEED] hover:text-black'
+            }`}
+          >
+            <MapPin className="w-5 h-5" />
+            ที่อยู่จัดส่ง
           </Link>
 
           <div className="border-t border-[#E5E5E5] my-2 mx-2"></div>

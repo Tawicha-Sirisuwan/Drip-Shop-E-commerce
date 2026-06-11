@@ -6,7 +6,7 @@ export default function HeroSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center pt-10 lg:pt-0">
         
         <div className="w-full lg:w-1/2 py-10 lg:py-24 relative z-10">
-          <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl text-black mb-6 leading-[1.05]">
+          <h1 className="font-bold text-5xl sm:text-6xl lg:text-7xl text-black mb-6 leading-[1.05]">
             ค้นหาสไตล์<br />
             เสื้อผ้าที่เป็น<br />
             ตัวคุณ

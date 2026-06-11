@@ -17,23 +17,16 @@ const categories = [
 export default function CategorySection() {
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-      
-      {/* Import Kanit Font */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap');
-        .font-kanit { font-family: 'Kanit', sans-serif; }
-      `}} />
 
       {/* Header */}
       <div className="flex justify-center items-center mb-10 sm:mb-14">
-        <h2 className="font-display text-3xl sm:text-4xl text-black uppercase tracking-wide">
+        <h2 className="font-bold text-3xl sm:text-4xl text-black uppercase tracking-wide">
           เลือกชมตามหมวดหมู่
         </h2>
       </div>
       
       {/* Categories Container */}
-      <div className="relative font-kanit">
+      <div className="relative font-sans">
         {/* Horizontal scroll on mobile, centered on desktop */}
         <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] scroll-smooth pb-6">
           <div className="flex gap-4 sm:gap-6 md:gap-8 justify-start lg:justify-center min-w-max px-2">
