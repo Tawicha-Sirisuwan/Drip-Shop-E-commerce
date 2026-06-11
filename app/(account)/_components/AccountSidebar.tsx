@@ -49,7 +49,7 @@ export default function AccountSidebar() {
             href="/account/addresses"
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
               pathname.startsWith('/account/addresses') 
-                ? 'bg-black text-white' 
+                ? 'bg-black text-b' 
                 : 'text-[#666666] hover:bg-[#F0EEED] hover:text-black'
             }`}
           >
