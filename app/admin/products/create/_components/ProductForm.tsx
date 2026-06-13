@@ -4,28 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm, SubmitHandler, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { Package, Tag, FileText, LayoutGrid, Info, Check, Image as ImageIcon, X, UploadCloud, Plus } from 'lucide-react'
-
-const variantSchema = z.object({
-  color: z.string().optional().nullable(),
-  size: z.string().optional().nullable(),
-  stock: z.number().int().nonnegative('Stock cannot be negative').default(0),
-})
-
-const productSchema = z.object({
-  name: z.string().min(1, 'Product name is required'),
-  slug: z.string().min(1, 'Slug is required'),
-  description: z.string().min(1, 'Description is required'),
-  price: z.number().positive('Price must be greater than 0'),
-  stock: z.number().int().nonnegative('Stock cannot be negative'),
-  categoryId: z.string().min(1, 'Category is required'),
-  isFeatured: z.boolean().default(false),
-  images: z.array(z.string()).default([]),
-  variants: z.array(variantSchema).default([]),
-})
-
-type ProductFormValues = z.infer<typeof productSchema>
+import { saveProduct } from '../../_actions'
+import { productSchema, type ProductFormValues } from '../../_schemas'
 
 export function ProductForm({ categories, initialData }: { categories: any[], initialData?: any }) {
   const router = useRouter()
@@ -84,33 +65,8 @@ export function ProductForm({ categories, initialData }: { categories: any[], in
   const onSubmit: SubmitHandler<ProductFormValues> = async (data) => {
     try {
       setError(null)
-      const url = initialData ? `/api/admin/products/${initialData.id}` : '/api/admin/products'
-      const method = initialData ? 'PUT' : 'POST'
-
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      })
-
-      if (!res.ok) {
-        // ดัก Error กรณีไฟล์ใหญ่เกินไป (Payload Too Large) หรือ Server ส่งเป็น HTML กลับมา
-        let errorMessage = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล'
-        try {
-          const errorData = await res.json()
-          errorMessage = errorData.error || errorMessage
-        } catch (e) {
-          if (res.status === 413) {
-            errorMessage = 'ขนาดรูปภาพใหญ่เกินไป (เกินขีดจำกัดของเซิร์ฟเวอร์)'
-          } else {
-            errorMessage = `Server Error (${res.status})`
-          }
-        }
-        throw new Error(errorMessage)
-      }
-
+      // อธิบาย: เปลี่ยนมาเรียกใช้ Server Action โดยตรง ปลอดภัยขึ้น เร็วขึ้น และไม่ต้องใช้ fetch
+      await saveProduct({ ...data, id: initialData?.id })
       router.push('/admin/products')
       router.refresh()
     } catch (err: any) {
