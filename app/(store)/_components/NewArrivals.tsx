@@ -19,9 +19,10 @@ const RatingStars = ({ rating }: { rating: number }) => {
 };
 
 export default async function NewArrivals() {
-  // ดึงข้อมูลสินค้าใหม่ 4 รายการล่าสุดจากฐานข้อมูล
+  // ดึงข้อมูลสินค้าใหม่ 4 รายการล่าสุดจากฐานข้อมูล พร้อมตัวเลือกย่อย
   const latestProducts = await prisma.product.findMany({
     where: { isArchived: false },
+    include: { variants: true },
     orderBy: { createdAt: 'desc' },
     take: 4,
   });
@@ -40,6 +41,12 @@ export default async function NewArrivals() {
             // ซ่อนรายการที่ 4 ในมือถือตาม Design เดิม
             const hiddenMobile = index === 3; 
 
+            // คำนวณสต็อกรวมจากทุก Variant
+            const totalStock = product.variants.length > 0 
+              ? product.variants.reduce((acc, v) => acc + v.stock, 0)
+              : product.stock;
+            const isSoldOut = totalStock <= 0;
+
             return (
               <div key={product.id} className={`group flex flex-col ${hiddenMobile ? 'hidden sm:flex' : 'flex'}`}>
                 <Link href={`/product/${product.slug}`} className="cursor-pointer flex-1">
@@ -48,15 +55,23 @@ export default async function NewArrivals() {
                       <img 
                         src={product.images[0]} 
                         alt={product.name} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                        className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${isSoldOut ? 'opacity-40 grayscale' : ''}`} 
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-200">
                         ไม่มีรูปภาพ
                       </div>
                     )}
+                    {/* ป้าย Sold Out */}
+                    {isSoldOut && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <span className="bg-black/80 backdrop-blur-sm text-white px-5 py-2 rounded-full font-bold text-sm tracking-widest uppercase shadow-xl">
+                          Sold Out
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <h3 className="font-bold text-base sm:text-lg mb-1 leading-tight text-black group-hover:underline">
+                  <h3 className="font-bold text-base sm:text-lg mb-1 leading-tight text-black group-hover:underline line-clamp-1">
                     {product.name}
                   </h3>
                   
@@ -66,19 +81,25 @@ export default async function NewArrivals() {
                   </div>
                   
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="font-bold text-xl sm:text-2xl">฿{Number(product.price).toLocaleString()}</span>
+                    <span className="font-bold text-xl sm:text-2xl text-black">฿{Number(product.price).toLocaleString()}</span>
                   </div>
                 </Link>
 
                 <div className="mt-auto">
-                  <AddToCartButton 
-                    product={{ 
-                      id: product.id, 
-                      name: product.name, 
-                      price: Number(product.price), 
-                      image: product.images?.[0] || "" 
-                    }} 
-                  />
+                  {isSoldOut ? (
+                    <button disabled className="w-full bg-gray-100 text-gray-400 py-2.5 rounded-full font-medium flex items-center justify-center gap-2 text-sm cursor-not-allowed border border-gray-200">
+                      สินค้าหมด
+                    </button>
+                  ) : (
+                    <AddToCartButton 
+                      product={{ 
+                        id: product.id, 
+                        name: product.name, 
+                        price: Number(product.price), 
+                        image: product.images?.[0] || "" 
+                      }} 
+                    />
+                  )}
                 </div>
               </div>
             );

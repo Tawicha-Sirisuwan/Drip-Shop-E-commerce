@@ -42,7 +42,7 @@ export default async function AdminProductsPage({
     prisma.product.count({ where: whereCondition }),
     prisma.product.findMany({
       where: whereCondition,
-      include: { category: true },
+      include: { category: true, variants: true },
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
@@ -105,37 +105,59 @@ export default async function AdminProductsPage({
                   </td>
                 </tr>
               ) : (
-                products.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50 transition group">
-                    <td className="px-6 py-4">
-                      <p className="font-bold text-black">{product.name}</p>
-                      <p className="text-xs text-[#666666] mt-0.5 font-mono">{product.slug}</p>
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">
-                      {product.category?.name || 'Uncategorized'}
-                    </td>
-                    <td className="px-6 py-4 font-medium text-black">
-                      ฿{Number(product.price).toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">
-                      {product.stock}
-                    </td>
-                    <td className="px-6 py-4">
-                      {product.stock > 0 ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                          <Package className="w-3.5 h-3.5" /> In Stock
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
-                          <AlertCircle className="w-3.5 h-3.5" /> Out of Stock
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <ProductActions productId={product.id} productName={product.name} />
-                    </td>
-                  </tr>
-                ))
+                products.map((product) => {
+                  // คำนวณสต็อกรวมทั้งหมด
+                  const totalStock = product.variants.length > 0 
+                    ? product.variants.reduce((acc, v) => acc + v.stock, 0)
+                    : product.stock;
+
+                  return (
+                    <tr key={product.id} className="hover:bg-gray-50 transition group">
+                      <td className="px-6 py-4">
+                        <p className="font-bold text-black">{product.name}</p>
+                        <p className="text-xs text-[#666666] mt-0.5 font-mono">{product.slug}</p>
+                      </td>
+                      <td className="px-6 py-4 text-gray-500">
+                        {product.category?.name || 'Uncategorized'}
+                      </td>
+                      <td className="px-6 py-4 font-medium text-black">
+                        ฿{Number(product.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      <td className="px-6 py-4">
+                        {/* โชว์แจกแจง Stock แบบละเอียด */}
+                        {product.variants.length > 0 ? (
+                          <div className="flex flex-col gap-1.5 text-xs">
+                            <div className="font-semibold text-black bg-gray-100 px-2 py-1 rounded w-max">รวม: {totalStock} ชิ้น</div>
+                            <div className="max-h-[80px] overflow-y-auto pr-2 space-y-1">
+                              {product.variants.map(v => (
+                                <div key={v.id} className="text-gray-600 border-l-2 border-gray-300 pl-2 flex justify-between items-center gap-4">
+                                  <span>{v.color || 'N/A'}, {v.size || 'N/A'}</span>
+                                  <span className={`font-medium ${v.stock <= 0 ? 'text-red-500' : 'text-black'}`}>{v.stock}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-gray-500 font-medium">{product.stock} ชิ้น</div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        {totalStock > 0 ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                            <Package className="w-3.5 h-3.5" /> In Stock
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+                            <AlertCircle className="w-3.5 h-3.5" /> Out of Stock
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <ProductActions productId={product.id} productName={product.name} />
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>
