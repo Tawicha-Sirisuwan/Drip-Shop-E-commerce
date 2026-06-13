@@ -2,10 +2,16 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm, SubmitHandler } from 'react-hook-form'
+import { useForm, SubmitHandler, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Package, Tag, FileText, LayoutGrid, Info, Check, Image as ImageIcon, X, UploadCloud } from 'lucide-react'
+import { Package, Tag, FileText, LayoutGrid, Info, Check, Image as ImageIcon, X, UploadCloud, Plus } from 'lucide-react'
+
+const variantSchema = z.object({
+  color: z.string().optional().nullable(),
+  size: z.string().optional().nullable(),
+  stock: z.number().int().nonnegative('Stock cannot be negative').default(0),
+})
 
 const productSchema = z.object({
   name: z.string().min(1, 'Product name is required'),
@@ -16,6 +22,7 @@ const productSchema = z.object({
   categoryId: z.string().min(1, 'Category is required'),
   isFeatured: z.boolean().default(false),
   images: z.array(z.string()).default([]),
+  variants: z.array(variantSchema).default([]),
 })
 
 type ProductFormValues = z.infer<typeof productSchema>
@@ -29,6 +36,7 @@ export function ProductForm({ categories, initialData }: { categories: any[], in
     handleSubmit,
     watch,
     setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema) as any,
@@ -41,7 +49,13 @@ export function ProductForm({ categories, initialData }: { categories: any[], in
       categoryId: '',
       isFeatured: false,
       images: [],
+      variants: [],
     }
+  })
+
+  const { fields: variantFields, append: appendVariant, remove: removeVariant } = useFieldArray({
+    control,
+    name: "variants",
   })
 
   const isFeatured = watch('isFeatured')
@@ -215,6 +229,68 @@ export function ProductForm({ categories, initialData }: { categories: any[], in
               </label>
               {errors.images && <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1"><Info className="w-3.5 h-3.5" />{errors.images.message}</p>}
             </div>
+          </div>
+
+          {/* Variants Section */}
+          <div className="bg-white border border-[#E5E5E5] rounded-xl p-6 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)]">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-lg font-bold text-black flex items-center gap-2">
+                <LayoutGrid className="w-5 h-5 text-neutral-400" />
+                Product Variants (ตัวเลือกย่อย)
+              </h2>
+              <button
+                type="button"
+                onClick={() => appendVariant({ color: '', size: '', stock: 0 })}
+                className="text-sm font-medium text-black bg-neutral-100 px-3 py-1.5 rounded-lg flex items-center gap-1 hover:bg-neutral-200 transition-colors cursor-pointer"
+              >
+                <Plus className="w-4 h-4" /> Add Variant
+              </button>
+            </div>
+            
+            {variantFields.length === 0 ? (
+              <p className="text-sm text-neutral-500 text-center py-6 border-2 border-dashed border-[#E5E5E5] rounded-xl bg-neutral-50/50">ไม่มีตัวเลือกย่อย (สต็อกรวมอ้างอิงจากด้านขวา)</p>
+            ) : (
+              <div className="space-y-3">
+                {variantFields.map((item, index) => (
+                  <div key={item.id} className="flex items-start gap-4 p-4 border border-[#E5E5E5] rounded-xl relative group bg-neutral-50/50">
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-neutral-600 mb-1.5">Color (สี)</label>
+                        <input
+                          {...register(`variants.${index}.color`)}
+                          placeholder="e.g. Red"
+                          className="w-full rounded-lg border border-[#E5E5E5] px-3 py-2 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-shadow bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-neutral-600 mb-1.5">Size (ไซส์)</label>
+                        <input
+                          {...register(`variants.${index}.size`)}
+                          placeholder="e.g. XL"
+                          className="w-full rounded-lg border border-[#E5E5E5] px-3 py-2 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-shadow bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-neutral-600 mb-1.5">Stock (จำนวน)</label>
+                        <input
+                          type="number"
+                          {...register(`variants.${index}.stock`, { valueAsNumber: true })}
+                          placeholder="0"
+                          className="w-full rounded-lg border border-[#E5E5E5] px-3 py-2 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-shadow bg-white"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeVariant(index)}
+                      className="mt-6 p-2 text-red-500 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
         </div>

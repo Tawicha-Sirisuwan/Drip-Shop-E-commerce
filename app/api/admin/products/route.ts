@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
 
+const variantSchema = z.object({
+  color: z.string().optional().nullable(),
+  size: z.string().optional().nullable(),
+  stock: z.number().int().nonnegative('Stock cannot be negative').default(0),
+})
+
 const productSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   slug: z.string().min(1, 'Slug is required'),
@@ -11,6 +17,7 @@ const productSchema = z.object({
   categoryId: z.string().min(1, 'Category is required'),
   isFeatured: z.boolean().default(false),
   images: z.array(z.string()).default([]),
+  variants: z.array(variantSchema).default([]),
 })
 
 export async function GET() {
@@ -38,8 +45,19 @@ export async function POST(req: Request) {
     const body = await req.json()
     const validatedData = productSchema.parse(body)
 
+    const { variants, ...productData } = validatedData
+
     const newProduct = await prisma.product.create({
-      data: validatedData
+      data: {
+        ...productData,
+        variants: {
+          create: variants.map(v => ({
+            color: v.color || null,
+            size: v.size || null,
+            stock: v.stock
+          }))
+        }
+      }
     })
 
     return NextResponse.json(newProduct, { status: 201 })

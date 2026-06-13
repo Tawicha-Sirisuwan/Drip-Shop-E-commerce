@@ -56,6 +56,24 @@ model Product {
   updatedAt   DateTime  @updatedAt
 
   orderItems  OrderItem[]
+  variants    ProductVariant[]
+}
+
+model ProductVariant {
+  id          String    @id @default(cuid())
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  color       String?   // สี เช่น "Red", "Blue"
+  size        String?   // ไซส์ เช่น "S", "M", "L"
+  stock       Int       @default(0) // สต็อกเฉพาะตัวเลือกนี้
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  orderItems  OrderItem[]
+
+  @@unique([productId, color, size]) // สินค้า 1 ตัว ห้ามมี สี+ไซส์ ซ้ำกัน
 }
 
 enum OrderStatus {
@@ -108,9 +126,12 @@ model OrderItem {
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId String
   product   Product  @relation(fields: [productId], references: [id])
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
   quantity  Int
   price     Decimal  @db.Decimal(10, 2)
 
   @@index([orderId])
   @@index([productId])
+  @@index([variantId])
 }

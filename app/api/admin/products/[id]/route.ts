@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
 
+const variantSchema = z.object({
+  color: z.string().optional().nullable(),
+  size: z.string().optional().nullable(),
+  stock: z.number().int().nonnegative('Stock cannot be negative').default(0),
+})
+
 const productSchema = z.object({
   name: z.string().min(1, 'Product name is required'),
   slug: z.string().min(1, 'Slug is required'),
@@ -11,6 +17,7 @@ const productSchema = z.object({
   categoryId: z.string().min(1, 'Category is required'),
   isFeatured: z.boolean().default(false),
   images: z.array(z.string()).default([]),
+  variants: z.array(variantSchema).default([]),
 })
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -18,7 +25,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const { id } = await params
     const product = await prisma.product.findUnique({
       where: { id },
-      include: { category: true }
+      include: { category: true, variants: true }
     })
 
     if (!product) {
@@ -38,9 +45,21 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const body = await req.json()
     const validatedData = productSchema.parse(body)
 
+    const { variants, ...productData } = validatedData
+
     const updatedProduct = await prisma.product.update({
       where: { id },
-      data: validatedData,
+      data: {
+        ...productData,
+        variants: {
+          deleteMany: {},
+          create: variants.map(v => ({
+            color: v.color || null,
+            size: v.size || null,
+            stock: v.stock
+          }))
+        }
+      },
     })
 
     return NextResponse.json(updatedProduct)
@@ -49,7 +68,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       return NextResponse.json({ error: 'Validation Error', details: error.flatten().fieldErrors }, { status: 400 })
     }
     console.error('Error updating product:', error)
-    return NextResponse.json({ error: 'Failed to update product' }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    return NextResponse.json({ error: `Failed to update product: ${errorMessage}` }, { status: 500 })
   }
 }
 
