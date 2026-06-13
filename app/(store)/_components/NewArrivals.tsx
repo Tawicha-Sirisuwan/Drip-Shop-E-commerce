@@ -1,14 +1,10 @@
 import React from 'react';
 import { Star, StarHalf } from 'lucide-react';
+import Link from 'next/link';
 import AddToCartButton from '@/components/cart/AddToCartButton';
+import prisma from '@/lib/prisma';
 
-const NEW_ARRIVALS = [
-  { id: 1, name: "เสื้อยืดแต่งแถบ", image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80", rating: 4.5, price: 120, originalPrice: null, discount: null },
-  { id: 2, name: "กางเกงยีนส์ทรงสกินนี่", image: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=600&q=80", rating: 3.5, price: 240, originalPrice: 260, discount: "-20%" },
-  { id: 3, name: "เสื้อเชิ้ตลายตาราง", image: "https://images.unsplash.com/photo-1596755094514-f87e32f85e2c?auto=format&fit=crop&w=600&q=80", rating: 4.5, price: 180, originalPrice: null, discount: null },
-  { id: 4, name: "เสื้อยืดแขนลายทาง", image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=600&q=80", rating: 4.7, price: 130, originalPrice: 160, discount: "-30%", hiddenMobile: true }
-];
-
+// คอมโพเนนต์แสดงดาวเรทติ้ง
 const RatingStars = ({ rating }: { rating: number }) => {
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 !== 0;
@@ -22,39 +18,81 @@ const RatingStars = ({ rating }: { rating: number }) => {
   );
 };
 
-export default function NewArrivals() {
+export default async function NewArrivals() {
+  // ดึงข้อมูลสินค้าใหม่ 4 รายการล่าสุดจากฐานข้อมูล
+  const latestProducts = await prisma.product.findMany({
+    where: { isArchived: false },
+    orderBy: { createdAt: 'desc' },
+    take: 4,
+  });
+
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
       <h2 className="font-bold text-4xl sm:text-5xl text-center mb-12 sm:mb-16">สินค้าใหม่ล่าสุด</h2>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        {NEW_ARRIVALS.map((product) => (
-          <div key={product.id} className={`group cursor-pointer ${product.hiddenMobile ? 'hidden sm:block' : ''}`}>
-            <div className="bg-[#F0EEED] rounded-[20px] aspect-square overflow-hidden mb-4 relative">
-              <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-            </div>
-            <h3 className="font-bold text-base sm:text-lg mb-1 leading-tight text-black">{product.name}</h3>
-            
-            <div className="flex items-center gap-1 mb-2">
-              <RatingStars rating={product.rating} />
-              <span className="text-sm text-[#666666]">{product.rating}/<span className="text-xs">5</span></span>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <span className="font-bold text-xl sm:text-2xl">฿{product.price}</span>
-              {product.originalPrice && <span className="font-bold text-lg text-[#666666] line-through">฿{product.originalPrice}</span>}
-              {product.discount && <span className="bg-[#FF3333]/10 text-[#FF3333] text-xs font-semibold px-2 sm:px-3 py-1 rounded-full">{product.discount}</span>}
-            </div>
+      {latestProducts.length === 0 ? (
+        <p className="text-center text-gray-500">ยังไม่มีสินค้าใหม่</p>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+          {latestProducts.map((product, index) => {
+            // สมมติเรทติ้งไปก่อน เนื่องจากในระบบยังไม่มี Database Review
+            const rating = 5; 
+            // ซ่อนรายการที่ 4 ในมือถือตาม Design เดิม
+            const hiddenMobile = index === 3; 
 
-            <AddToCartButton product={{ id: String(product.id), name: product.name, price: product.price, image: product.image }} />
-          </div>
-        ))}
-      </div>
+            return (
+              <div key={product.id} className={`group flex flex-col ${hiddenMobile ? 'hidden sm:flex' : 'flex'}`}>
+                <Link href={`/product/${product.slug}`} className="cursor-pointer flex-1">
+                  <div className="bg-[#F0EEED] rounded-[20px] aspect-square overflow-hidden mb-4 relative">
+                    {product.images && product.images.length > 0 ? (
+                      <img 
+                        src={product.images[0]} 
+                        alt={product.name} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-200">
+                        ไม่มีรูปภาพ
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="font-bold text-base sm:text-lg mb-1 leading-tight text-black group-hover:underline">
+                    {product.name}
+                  </h3>
+                  
+                  <div className="flex items-center gap-1 mb-2">
+                    <RatingStars rating={rating} />
+                    <span className="text-sm text-[#666666]">{rating}/<span className="text-xs">5</span></span>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="font-bold text-xl sm:text-2xl">฿{Number(product.price).toLocaleString()}</span>
+                  </div>
+                </Link>
+
+                <div className="mt-auto">
+                  <AddToCartButton 
+                    product={{ 
+                      id: product.id, 
+                      name: product.name, 
+                      price: Number(product.price), 
+                      image: product.images?.[0] || "" 
+                    }} 
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="mt-12 text-center">
-        <button className="border border-gray-300 text-black px-14 py-3 rounded-full font-medium hover:bg-black hover:text-white transition-colors duration-300 w-full sm:w-auto cursor-pointer">
+        <Link 
+          href="/products" 
+          className="inline-block border border-gray-300 text-black px-14 py-3 rounded-full font-medium hover:bg-black hover:text-white transition-colors duration-300 w-full sm:w-auto cursor-pointer"
+        >
           ดูทั้งหมด
-        </button>
+        </Link>
       </div>
     </section>
   );
