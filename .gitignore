@@ -42,3 +42,5 @@ next-env.d.ts
 example.html
 AGENTS.md
 /lib/generated/prisma
+
+CONTEXT.md

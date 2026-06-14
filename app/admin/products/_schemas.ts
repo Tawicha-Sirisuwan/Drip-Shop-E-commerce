@@ -14,6 +14,7 @@ export const productSchema = z.object({
   price: z.number().positive('Price must be greater than 0'),
   stock: z.number().int().nonnegative('Stock cannot be negative'),
   categoryId: z.string().min(1, 'Category is required'),
+  brandId: z.string().nullable().optional().transform(val => val === "" ? null : val),
   isFeatured: z.boolean().default(false),
   images: z.array(z.string()).default([]),
   variants: z.array(variantSchema).default([]),

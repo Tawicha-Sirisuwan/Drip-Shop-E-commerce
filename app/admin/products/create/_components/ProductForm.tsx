@@ -8,7 +8,7 @@ import { Package, Tag, FileText, LayoutGrid, Info, Check, Image as ImageIcon, X,
 import { saveProduct } from '../../_actions'
 import { productSchema, type ProductFormValues } from '../../_schemas'
 
-export function ProductForm({ categories, initialData }: { categories: any[], initialData?: any }) {
+export function ProductForm({ categories, brands, initialData }: { categories: any[], brands: any[], initialData?: any }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   
@@ -28,6 +28,7 @@ export function ProductForm({ categories, initialData }: { categories: any[], in
       price: 0,
       stock: 0,
       categoryId: '',
+      brandId: initialData?.brandId || '',
       isFeatured: false,
       images: [],
       variants: [],
@@ -320,6 +321,23 @@ export function ProductForm({ categories, initialData }: { categories: any[], in
                   ))}
                 </select>
                 {errors.categoryId && <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1"><Info className="w-3.5 h-3.5" />{errors.categoryId.message}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1.5">Brand</label>
+                <select
+                  {...register('brandId')}
+                  className="w-full rounded-lg border border-[#E5E5E5] px-3 py-2.5 text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-shadow appearance-none bg-white cursor-pointer"
+                  style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.75rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
+                >
+                  <option value="" className="text-gray-400">No Brand (Unbranded)</option>
+                  {brands?.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.brandId && <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1"><Info className="w-3.5 h-3.5" />{errors.brandId.message}</p>}
               </div>
 
               {/* Custom Toggle Switch for Featured */}

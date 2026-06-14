@@ -6,9 +6,10 @@ import { ArrowLeft } from 'lucide-react'
 export const dynamic = 'force-dynamic'
 
 export default async function CreateProductPage() {
-  const categories = await prisma.category.findMany({
-    orderBy: { name: 'asc' }
-  })
+  const [categories, brands] = await Promise.all([
+    prisma.category.findMany({ orderBy: { name: 'asc' } }),
+    prisma.brand.findMany({ orderBy: { name: 'asc' } })
+  ])
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -30,7 +31,7 @@ export default async function CreateProductPage() {
             {/* TODO: Add link to create category once that page exists */}
           </div>
         ) : (
-          <ProductForm categories={categories} />
+          <ProductForm categories={categories} brands={brands} />
         )}
       </div>
     </div>

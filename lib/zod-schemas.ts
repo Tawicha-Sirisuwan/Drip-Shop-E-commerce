@@ -62,3 +62,13 @@ export const addressSchema = z.object({
 });
 
 export type AddressInput = z.infer<typeof addressSchema>;
+
+// Schema สำหรับแบรนด์ (Brand Schema)
+export const brandSchema = z.object({
+  name: z.string().min(1, { message: "กรุณาระบุชื่อแบรนด์" }),
+  slug: z.string().min(1, { message: "กรุณาระบุ Slug" }),
+  logoUrl: z.string().url({ message: "รูปแบบ URL ไม่ถูกต้อง" }).optional().or(z.literal('')),
+  description: z.string().optional(),
+});
+
+export type BrandInput = z.infer<typeof brandSchema>;

@@ -38,6 +38,18 @@ model Category {
   products    Product[]
 }
 
+model Brand {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  logoUrl     String?
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products    Product[]
+}
+
 model Product {
   id          String    @id @default(cuid())
   name        String
@@ -51,6 +63,9 @@ model Product {
   
   categoryId  String
   category    Category  @relation(fields: [categoryId], references: [id])
+  
+  brandId     String?
+  brand       Brand?    @relation(fields: [brandId], references: [id])
   
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

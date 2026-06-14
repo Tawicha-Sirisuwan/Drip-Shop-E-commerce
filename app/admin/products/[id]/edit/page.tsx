@@ -8,8 +8,9 @@ export const dynamic = 'force-dynamic'
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [categories, product] = await Promise.all([
+  const [categories, brands, product] = await Promise.all([
     prisma.category.findMany({ orderBy: { name: 'asc' } }),
+    prisma.brand.findMany({ orderBy: { name: 'asc' } }),
     prisma.product.findUnique({ where: { id }, include: { variants: true } })
   ])
 
@@ -42,7 +43,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
             <p className="text-neutral-500 mb-4">คุณต้องสร้าง Category ก่อนจึงจะสามารถแก้ไขสินค้าได้</p>
           </div>
         ) : (
-          <ProductForm categories={categories} initialData={initialData} />
+          <ProductForm categories={categories} brands={brands} initialData={initialData} />
         )}
       </div>
     </div>
