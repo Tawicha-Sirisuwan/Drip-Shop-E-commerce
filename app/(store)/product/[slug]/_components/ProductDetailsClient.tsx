@@ -5,9 +5,12 @@ import { useCartStore } from '@/store/useCartStore';
 import { ShoppingCart, AlertCircle, ChevronRight, Check } from 'lucide-react';
 import { Prisma } from '@prisma/client';
 
-type ProductWithVariants = Prisma.ProductGetPayload<{
-  include: { variants: true, category: true }
-}>;
+// \u0e43\u0e0a\u0e49 Omit \u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e41\u0e17\u0e19\u0e17\u0e35\u0e48 price: Decimal \u0e14\u0e49\u0e27\u0e22 price: number
+// \u0e40\u0e1e\u0e23\u0e32\u0e30 Server Component \u0e41\u0e1b\u0e25\u0e07 Prisma Decimal \u0e40\u0e1b\u0e47\u0e19 number \u0e40\u0e23\u0e35\u0e22\u0e1a\u0e23\u0e49\u0e2d\u0e22\u0e01\u0e48\u0e2d\u0e19\u0e2a\u0e48\u0e07\u0e21\u0e32
+type ProductWithVariants = Omit<
+  Prisma.ProductGetPayload<{ include: { variants: true; category: true } }>,
+  'price'
+> & { price: number };
 
 interface ProductDetailsClientProps {
   product: ProductWithVariants;

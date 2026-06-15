@@ -5,6 +5,13 @@ import bcrypt from 'bcryptjs'
 import { updateProfileSchema } from '@/lib/zod-schemas'
 import { z } from 'zod'
 
+// กำหนด type สำหรับข้อมูลที่จะส่งไป update ใน DB
+// แยก field ชัดเจนเพื่อป้องกัน field ที่ไม่ต้องการแทรกเข้ามา
+interface UserUpdatePayload {
+  name: string
+  password?: string
+}
+
 export async function PUT(req: Request) {
   try {
     const session = await auth()
@@ -24,7 +31,7 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    const updateData: any = {
+    const updateData: UserUpdatePayload = {
       name: validatedData.name,
     }
 

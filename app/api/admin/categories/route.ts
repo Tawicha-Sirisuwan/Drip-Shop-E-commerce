@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
+import { Prisma } from '@prisma/client'
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -34,8 +35,8 @@ export async function POST(req: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Validation Error', details: error.flatten().fieldErrors }, { status: 400 })
     }
-    // Handle unique constraint error for slug
-    if ((error as any).code === 'P2002') {
+    // ตรวจสอบ error P2002 จาก Prisma (Unique constraint) ด้วย official type guard
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       return NextResponse.json({ error: 'Slug นี้ถูกใช้งานแล้ว กรุณาใช้คำอื่น' }, { status: 400 })
     }
     console.error('Error creating category:', error)

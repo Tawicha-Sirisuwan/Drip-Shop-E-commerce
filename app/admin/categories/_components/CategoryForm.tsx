@@ -2,10 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm, SubmitHandler } from 'react-hook-form'
+import { useForm, SubmitHandler, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Tag, FileText, Info, Check } from 'lucide-react'
+import { Prisma } from '@prisma/client'
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Category name is required'),
@@ -15,7 +16,10 @@ const categorySchema = z.object({
 
 type CategoryFormValues = z.infer<typeof categorySchema>
 
-export function CategoryForm({ initialData }: { initialData?: any }) {
+// ประเภทข้อมูลของ Category ที่ส่งมาเมื่อเป็นโหมด Edit (มาจาก Prisma โดยตรง)
+type CategoryInitialData = Prisma.CategoryGetPayload<object>
+
+export function CategoryForm({ initialData }: { initialData?: CategoryInitialData }) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   
@@ -24,12 +28,20 @@ export function CategoryForm({ initialData }: { initialData?: any }) {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<CategoryFormValues>({
-    resolver: zodResolver(categorySchema) as any,
-    defaultValues: initialData || {
-      name: '',
-      slug: '',
-      description: '',
-    }
+    resolver: zodResolver(categorySchema) as Resolver<CategoryFormValues>,
+    defaultValues: initialData
+      ? {
+          // แปลง initialData จาก Prisma ให้ตรงกับ CategoryFormValues schema
+          // description: null จาก Prisma ต้องแปลงเป็น undefined เพราะ Zod schema ใช้ optional() (string | undefined)
+          name: initialData.name,
+          slug: initialData.slug,
+          description: initialData.description ?? undefined,
+        }
+      : {
+          name: '',
+          slug: '',
+          description: '',
+        },
   })
 
   const onSubmit: SubmitHandler<CategoryFormValues> = async (data) => {
@@ -53,8 +65,9 @@ export function CategoryForm({ initialData }: { initialData?: any }) {
 
       router.push('/admin/categories')
       router.refresh()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      // ตรวจสอบก่อนเข้าถึง .message เพราะ err อาจไม่ใช่ Error object เสมอไป
+      setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ')
     }
   }
 

@@ -2,13 +2,33 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm, SubmitHandler, useFieldArray } from 'react-hook-form'
+import { useForm, SubmitHandler, useFieldArray, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Package, Tag, FileText, LayoutGrid, Info, Check, Image as ImageIcon, X, UploadCloud, Plus } from 'lucide-react'
 import { saveProduct } from '../../_actions'
 import { productSchema, type ProductFormValues } from '../../_schemas'
+import { Prisma } from '@prisma/client'
 
-export function ProductForm({ categories, brands, initialData }: { categories: any[], brands: any[], initialData?: any }) {
+// ประเภทข้อมูลสำหรับตัวเลือก Dropdown ของ Category
+type CategoryOption = Pick<Prisma.CategoryGetPayload<object>, 'id' | 'name'>
+
+// ประเภทข้อมูลสำหรับตัวเลือก Dropdown ของ Brand
+type BrandOption = Pick<Prisma.BrandGetPayload<object>, 'id' | 'name'>
+
+// ประเภทข้อมูลที่รับเมื่อเป็นโหมด Edit
+// price เป็น number เพราะ edit page แปลงจาก Prisma Decimal มาแล้วก่อนส่งมา
+type ProductInitialData = Omit<
+  Prisma.ProductGetPayload<{ include: { variants: true } }>,
+  'price'
+> & { price: number }
+
+interface ProductFormProps {
+  categories: CategoryOption[]
+  brands: BrandOption[]
+  initialData?: ProductInitialData
+}
+
+export function ProductForm({ categories, brands, initialData }: ProductFormProps) {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   
@@ -20,19 +40,38 @@ export function ProductForm({ categories, brands, initialData }: { categories: a
     control,
     formState: { errors, isSubmitting },
   } = useForm<ProductFormValues>({
-    resolver: zodResolver(productSchema) as any,
-    defaultValues: initialData || {
-      name: '',
-      slug: '',
-      description: '',
-      price: 0,
-      stock: 0,
-      categoryId: '',
-      brandId: initialData?.brandId || '',
-      isFeatured: false,
-      images: [],
-      variants: [],
-    }
+    resolver: zodResolver(productSchema) as Resolver<ProductFormValues>,
+    defaultValues: initialData
+      ? {
+          // แปลง initialData จาก Prisma ให้ตรงกับ ProductFormValues schema
+          id: initialData.id,
+          name: initialData.name,
+          slug: initialData.slug,
+          description: initialData.description,
+          price: Number(initialData.price),
+          stock: initialData.stock,
+          categoryId: initialData.categoryId,
+          brandId: initialData.brandId ?? '',
+          isFeatured: initialData.isFeatured,
+          images: initialData.images,
+          variants: initialData.variants.map((v) => ({
+            color: v.color ?? undefined,
+            size: v.size ?? undefined,
+            stock: v.stock,
+          })),
+        }
+      : {
+          name: '',
+          slug: '',
+          description: '',
+          price: 0,
+          stock: 0,
+          categoryId: '',
+          brandId: '',
+          isFeatured: false,
+          images: [],
+          variants: [],
+        },
   })
 
   const { fields: variantFields, append: appendVariant, remove: removeVariant } = useFieldArray({
@@ -70,8 +109,9 @@ export function ProductForm({ categories, brands, initialData }: { categories: a
       await saveProduct({ ...data, id: initialData?.id })
       router.push('/admin/products')
       router.refresh()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      // ตรวจสอบก่อนเข้าถึง .message เพราะ err อาจไม่ใช่ Error object เสมอไป
+      setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ')
     }
   }
 

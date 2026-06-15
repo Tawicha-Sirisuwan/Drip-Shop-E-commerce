@@ -31,9 +31,10 @@ export function CategoryActions({ categoryId, categoryName, productsCount }: { c
       }
 
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
+      // ตรวจสอบก่อนเข้าถึง .message เพราะ error อาจไม่ใช่ Error object เสมอไป
       console.error(error)
-      alert(error.message || 'เกิดข้อผิดพลาดในการลบหมวดหมู่')
+      alert(error instanceof Error ? error.message : 'เกิดข้อผิดพลาดในการลบหมวดหมู่')
       setIsDeleting(false)
     }
   }

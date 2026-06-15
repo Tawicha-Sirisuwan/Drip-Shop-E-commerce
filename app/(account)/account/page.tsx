@@ -57,8 +57,9 @@ export default function AccountProfilePage() {
         confirmNewPassword: '',
       });
 
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      // ตรวจสอบก่อนเข้าถึง .message เพราะ err อาจไม่ใช่ Error object เสมอไป
+      setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ');
     }
   };
 

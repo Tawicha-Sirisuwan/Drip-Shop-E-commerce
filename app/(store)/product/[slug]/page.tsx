@@ -1,12 +1,19 @@
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import ProductDetailsClient from "./_components/ProductDetailsClient";
+import { Prisma } from "@prisma/client";
 
 interface ProductPageProps {
   params: Promise<{
     slug: string;
   }>;
 }
+
+// ประเภทข้อมูลสินค้าที่แปลง Decimal เป็น number แล้ว เพื่อส่งข้ามไปยัง Client Component ได้
+type SerializedProduct = Omit<
+  Prisma.ProductGetPayload<{ include: { variants: true; category: true } }>,
+  'price'
+> & { price: number }
 
 // ฟังก์ชันสร้าง Metadata เพื่อผลดีต่อ SEO
 export async function generateMetadata({ params }: ProductPageProps) {
@@ -47,9 +54,9 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  // แปลงค่า Decimal ของ Prisma ให้เป็นตัวเลขธรรมดา (Number) 
+  // แปลงค่า Decimal ของ Prisma ให้เป็นตัวเลขธรรมดา (Number)
   // เพื่อไม่ให้เกิด Error ในการส่งต่อข้อมูลข้ามไปยัง Client Component
-  const serializedProduct = {
+  const serializedProduct: SerializedProduct = {
     ...product,
     price: Number(product.price),
   };
@@ -61,7 +68,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           อธิบาย: โยนการเรนเดอร์ UI แบบ Interactive ไปให้ Client Component
           ซึ่งช่วยให้ Server ทำงานน้อยลง และทำให้หน้าเว็บตอบสนองต่อผู้ใช้ได้ไวขึ้น 
         */}
-        <ProductDetailsClient product={serializedProduct as any} />
+        <ProductDetailsClient product={serializedProduct} />
       </div>
     </div>
   );
