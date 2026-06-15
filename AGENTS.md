@@ -63,7 +63,7 @@ NEXT_PUBLIC_STRIPE_PK     # Stripe public key (client-side safe)
 ## Core Rules (Strictly Enforced)
 
 ### 1. Output Language & Comments (CRITICAL)
-- All responses, explanations, and code comments must be in **English**
+- All responses, explanations, and code comments must be in **Thai**
 - Variable, function, and type names remain in **English** as usual
 - Every major function, business logic block, and complex section **must have a comment** explaining what it does and why
 - No emojis in comments
