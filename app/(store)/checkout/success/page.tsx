@@ -6,7 +6,7 @@ import { CheckCircle, XCircle } from "lucide-react";
 import ClearCart from "./ClearCart";
 
 export default async function CheckoutSuccessPage(props: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+ readonly searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {    
   const searchParams = await props.searchParams;
   const sessionId = typeof searchParams.session_id === "string" ? searchParams.session_id : undefined;
