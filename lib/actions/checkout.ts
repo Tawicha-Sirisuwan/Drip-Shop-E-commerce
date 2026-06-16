@@ -54,12 +54,22 @@ export async function createCheckoutSession(input: unknown): Promise<{ url: stri
       const price = Number(product.price);
       totalAmount += price * item.quantity;
 
+      // ตรวจสอบ URL รูปภาพ: ต้องขึ้นต้นด้วย http และมีความยาวไม่เกิน 2000 ตัวอักษร
+      // ป้องกันกรณีรูปภาพถูกเก็บเป็น Base64 (data:image/png;base64,...) ซึ่งยาวเกิน 2048 ตัวอักษรและ Stripe ไม่รับ
+      let validImages: string[] = [];
+      if (product.images.length > 0) {
+        const imgUrl = product.images[0];
+        if (imgUrl.startsWith("http") && imgUrl.length <= 2000) {
+          validImages = [imgUrl];
+        }
+      }
+
       line_items.push({
         price_data: {
           currency: "thb",
           product_data: {
             name: product.name,
-            images: product.images.length > 0 ? [product.images[0]] : [],
+            images: validImages,
           },
           // Stripe ต้องการราคาเป็นหน่วยที่เล็กที่สุด (THB เป็นหน่วยสตางค์ จึงต้องคูณ 100)
           unit_amount: Math.round(price * 100), 
@@ -93,7 +103,7 @@ export async function createCheckoutSession(input: unknown): Promise<{ url: stri
     // 5. สร้าง Stripe Checkout Session
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const stripeSession = await stripe.checkout.sessions.create({
-      payment_method_types: ["card", "promptpay"], // รองรับทั้งบัตรเครดิตและพร้อมเพย์
+      payment_method_types: ["card"], // ใช้แค่บัตรเครดิตก่อน ป้องกัน Error จาก PromptPay ที่ยังไม่ได้เปิดใช้งานใน Dashboard
       mode: "payment",
       line_items,
       success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -115,8 +125,20 @@ export async function createCheckoutSession(input: unknown): Promise<{ url: stri
     return { url: stripeSession.url };
 
   } catch (error: any) {
-    // ระวังไม่ส่งข้อความ Error จริงไปให้ Client ตามกฎ Security
     console.error("Checkout Session Error:", error);
-    throw new Error("เกิดข้อผิดพลาดในการสร้างระบบชำระเงิน กรุณาลองใหม่อีกครั้ง");
+    
+    // ดักจับ Error ที่เรารู้จักและต้องการให้ Client ทราบ
+    if (error.message === "Unauthorized") {
+      throw new Error("กรุณาเข้าสู่ระบบก่อนทำการชำระเงินครับ");
+    }
+    if (error.message === "Some products were not found") {
+      throw new Error("สินค้าบางรายการไม่มีในระบบ (อาจถูกลบไปแล้ว) กรุณาลบออกจากตะกร้าครับ");
+    }
+    if (error.message === "Invalid input") {
+      throw new Error("ข้อมูลสินค้าไม่ถูกต้อง");
+    }
+
+    // ช่วง Debug: คืนค่า Error Message จริงกลับไปให้ผู้ใช้เห็น จะได้รู้ว่าพังที่จุดไหน
+    throw new Error(`เกิดข้อผิดพลาด: ${error.message}`);
   }
 }

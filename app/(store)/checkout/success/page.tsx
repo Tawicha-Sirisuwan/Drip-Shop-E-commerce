@@ -3,10 +3,11 @@ import { stripe } from "@/lib/stripe";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { CheckCircle, XCircle } from "lucide-react";
+import ClearCart from "./ClearCart";
 
 export default async function CheckoutSuccessPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+}) {    
   const searchParams = await props.searchParams;
   const sessionId = typeof searchParams.session_id === "string" ? searchParams.session_id : undefined;
 
@@ -33,7 +34,7 @@ export default async function CheckoutSuccessPage(props: {
 
       // 3. ทำการตัดสต็อกเฉพาะตอนที่สถานะยังเป็น PENDING
       // ป้องกันปัญหาลูกค้ารีเฟรชหน้า Success แล้วสต็อกโดนตัดซ้ำ
-      if (order && order.status === "PENDING") {
+      if (order?.status === "PENDING") {
         await prisma.$transaction(async (tx) => {
           // อัปเดตสถานะเป็น PAID
           await tx.order.update({
@@ -68,6 +69,7 @@ export default async function CheckoutSuccessPage(props: {
     <div className="bg-white min-h-screen w-full flex flex-col items-center justify-center p-4">
       {isSuccess ? (
         <div className="text-center space-y-6 max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border">
+          <ClearCart />
           <CheckCircle className="w-20 h-20 text-green-500 mx-auto" />
           <h1 className="text-3xl font-bold text-gray-900">ชำระเงินสำเร็จ!</h1>
           <p className="text-gray-600">
