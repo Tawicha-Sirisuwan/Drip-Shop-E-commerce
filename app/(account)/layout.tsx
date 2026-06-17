@@ -2,12 +2,20 @@ import React from 'react';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
 import AccountSidebar from './_components/AccountSidebar';
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
 
-export default function AccountLayout({
+export default async function AccountLayout({
   children,
 }: {
-  children : React.ReactNode;
+  readonly children : React.ReactNode;
 }) {
+  const session = await auth();
+  
+  if (!session?.user) {
+    redirect('/login');
+  }
+
   return (
     <>
       <Navbar />

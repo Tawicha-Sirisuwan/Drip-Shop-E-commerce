@@ -288,14 +288,14 @@ export default function AddressForm({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 px-4 rounded-xl text-base font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+              className="flex-1 py-3 px-4 rounded-xl text-base font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
               disabled={isSubmitting}
             >
               ยกเลิก
             </button>
             <button
               type="submit"
-              className="flex-1 py-3 px-4 rounded-xl text-base font-medium text-white bg-black hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+              className="flex-1 py-3 px-4 rounded-xl text-base font-medium text-white bg-black hover:bg-gray-800 transition-colors flex items-center justify-center gap-2 cursor-pointer"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
