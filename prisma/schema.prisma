@@ -110,6 +110,10 @@ model Order {
   stripeSessionId String?     @unique
   shippingAddress String?     // เก็บข้อมูลที่อยู่จัดส่งแบบ Text/JSON ตอนสั่งซื้อ
   
+  couponId        String?
+  coupon          Coupon?     @relation(fields: [couponId], references: [id])
+  discountAmount  Decimal     @default(0) @db.Decimal(10, 2)
+
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   
@@ -167,3 +171,24 @@ model Review {
   @@unique([userId, productId])
 }
 
+enum DiscountType {
+  FIXED
+  PERCENTAGE
+}
+
+model Coupon {
+  id              String       @id @default(cuid())
+  code            String       @unique
+  type            DiscountType
+  value           Decimal      @db.Decimal(10, 2)
+  minOrderAmount  Decimal?     @db.Decimal(10, 2)
+  maxUses         Int?
+  currentUses     Int          @default(0)
+  startDate       DateTime?
+  expiryDate      DateTime?
+  isActive        Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  orders          Order[]
+}

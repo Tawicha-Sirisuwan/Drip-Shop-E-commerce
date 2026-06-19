@@ -15,6 +15,7 @@ const CheckoutItemSchema = z.object({
 const CheckoutSchema = z.object({
   items: z.array(CheckoutItemSchema).min(1),
   shippingAddress: z.string().optional(),
+  couponCode: z.string().optional(),
 });
 
 // Server Action สำหรับการสร้าง Stripe Checkout Session
@@ -29,7 +30,7 @@ export async function createCheckoutSession(input: unknown): Promise<{ url: stri
     const validated = CheckoutSchema.safeParse(input);
     if (!validated.success) throw new Error("Invalid input");
 
-    const { items, shippingAddress } = validated.data;
+    const { items, shippingAddress, couponCode } = validated.data;
 
     // 3. ดึงข้อมูลสินค้าจาก Database เพื่อให้ได้ราคาและข้อมูลที่ถูกต้องเสมอ (ป้องกันการแก้ไขราคาจาก Client)
     const productIds = items.map((item) => item.productId);
@@ -78,6 +79,38 @@ export async function createCheckoutSession(input: unknown): Promise<{ url: stri
       });
     }
 
+    // Validate Coupon
+    let discountAmount = 0;
+    let couponId = null;
+    let stripeDiscounts: any[] = [];
+
+    if (couponCode) {
+      const coupon = await prisma.coupon.findUnique({ where: { code: couponCode.toUpperCase() } });
+      if (!coupon || !coupon.isActive) {
+        throw new Error("Invalid or expired coupon");
+      }
+      if (coupon.expiryDate && new Date() > coupon.expiryDate) {
+        throw new Error("Coupon has expired");
+      }
+      if (coupon.maxUses && coupon.currentUses >= coupon.maxUses) {
+        throw new Error("Coupon usage limit reached");
+      }
+      if (coupon.minOrderAmount && totalAmount < Number(coupon.minOrderAmount)) {
+        throw new Error(`Minimum order amount is ฿${coupon.minOrderAmount}`);
+      }
+
+      couponId = coupon.id;
+      if (coupon.type === "PERCENTAGE") {
+        discountAmount = totalAmount * (Number(coupon.value) / 100);
+      } else {
+        discountAmount = Number(coupon.value);
+      }
+      if (discountAmount > totalAmount) discountAmount = totalAmount;
+      
+      // Add to Stripe session
+      stripeDiscounts = [{ coupon: coupon.code }];
+    }
+
     // 4. สร้าง Order ใน Database (สถานะเริ่มต้นเป็น PENDING)
     const order = await prisma.order.create({
       data: {
@@ -85,6 +118,8 @@ export async function createCheckoutSession(input: unknown): Promise<{ url: stri
         total: totalAmount,
         status: "PENDING",
         shippingAddress: shippingAddress,
+        couponId: couponId,
+        discountAmount: discountAmount,
         orderItems: {
           create: items.map((item) => {
             const product = products.find((p) => p.id === item.productId);
@@ -106,6 +141,7 @@ export async function createCheckoutSession(input: unknown): Promise<{ url: stri
       payment_method_types: ["card"], // ใช้แค่บัตรเครดิตก่อน ป้องกัน Error จาก PromptPay ที่ยังไม่ได้เปิดใช้งานใน Dashboard
       mode: "payment",
       line_items,
+      discounts: stripeDiscounts.length > 0 ? stripeDiscounts : undefined,
       success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/cart`,
       client_reference_id: order.id, // ส่ง Order ID ไปเป็น Reference เพื่อใช้ใน Webhook

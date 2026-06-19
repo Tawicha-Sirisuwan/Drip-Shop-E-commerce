@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Tag, ShoppingCart, Users, TrendingUp, Settings, 
-  LogOut, X, Layers, Briefcase
+  LogOut, X, Layers, Briefcase, Ticket
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -58,6 +58,10 @@ export default function AdminSidebar({ isSidebarOpen, setIsSidebarOpen }: AdminS
 
           <Link href="/admin/brands" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition ${pathname.startsWith('/admin/brands') ? 'bg-black text-white' : 'text-[#666666] hover:bg-[#F0EEED] hover:text-black'}`}>
             <Briefcase className="w-5 h-5" /> แบรนด์
+          </Link>
+
+          <Link href="/admin/coupons" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition ${pathname.startsWith('/admin/coupons') ? 'bg-black text-white' : 'text-[#666666] hover:bg-[#F0EEED] hover:text-black'}`}>
+            <Ticket className="w-5 h-5" /> โค้ดส่วนลด
           </Link>
           
           <Link href="/admin/orders" className={`flex items-center justify-between px-3 py-2.5 rounded-xl font-medium transition ${pathname.startsWith('/admin/orders') ? 'bg-black text-white' : 'text-[#666666] hover:bg-[#F0EEED] hover:text-black'}`}>

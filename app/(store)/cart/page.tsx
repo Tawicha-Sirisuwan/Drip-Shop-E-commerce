@@ -5,11 +5,18 @@ import Link from 'next/link';
 import { Trash2, Plus, Minus, ArrowRight, Tag, ShoppingBag } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
 import { createCheckoutSession } from '@/lib/actions/checkout';
+import { validateCouponAction } from '@/lib/actions/coupon';
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, getTotalPrice } = useCartStore();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // Coupon States
+  const [couponInput, setCouponInput] = useState("");
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{code: string, discountAmount: number} | null>(null);
 
   // ป้องกัน Hydration Mismatch ระหว่าง Server (ยังไม่มี LocalStorage) และ Client
   useEffect(() => {
@@ -19,6 +26,34 @@ export default function CartPage() {
   if (!mounted) {
     return <div className="min-h-screen bg-white"></div>;
   }
+
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setIsApplyingCoupon(true);
+    setCouponError("");
+    
+    try {
+      const res = await validateCouponAction(couponInput, getTotalPrice());
+      if (res.success) {
+        setAppliedCoupon({
+          code: res.coupon!.code,
+          discountAmount: res.discountAmount!
+        });
+        setCouponInput("");
+      } else {
+        setCouponError(res.error || "คูปองไม่ถูกต้อง");
+      }
+    } catch (err: any) {
+      setCouponError("เกิดข้อผิดพลาดในการตรวจสอบคูปอง");
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponError("");
+  };
 
   // ฟังก์ชันเรียก Server Action เมื่อกดชำระเงิน
   const handleCheckout = async () => {
@@ -35,7 +70,8 @@ export default function CartPage() {
 
       // ยิง Server Action
       const res = await createCheckoutSession({
-        items: checkoutItems
+        items: checkoutItems,
+        couponCode: appliedCoupon?.code
       });
 
       // ถ้าระบบตอบกลับมาเป็น URL ให้ Redirect ไปที่ Stripe
@@ -50,7 +86,8 @@ export default function CartPage() {
 
   const subtotal = getTotalPrice();
   const deliveryFee = subtotal > 0 ? 50 : 0; // สมมติค่าส่ง 50 บาท
-  const total = subtotal + deliveryFee;
+  const discount = appliedCoupon ? appliedCoupon.discountAmount : 0;
+  const total = Math.max(0, subtotal + deliveryFee - discount);
 
   return (
     <div className="bg-white min-h-screen w-full antialiased font-sans">
@@ -145,6 +182,12 @@ export default function CartPage() {
                   <span>ค่าจัดส่ง</span>
                   <span className="font-medium text-black">฿{deliveryFee.toLocaleString()}</span>
                 </div>
+                {appliedCoupon && (
+                  <div className="flex justify-between text-green-600">
+                    <span>ส่วนลด ({appliedCoupon.code}) <button onClick={removeCoupon} className="text-red-500 text-xs hover:underline ml-1">ลบออก</button></span>
+                    <span className="font-medium">-฿{appliedCoupon.discountAmount.toLocaleString()}</span>
+                  </div>
+                )}
                 
                 <div className="border-t border-gray-200 pt-4 flex justify-between items-center">
                   <span className="text-black font-medium text-lg">ยอดรวมสุทธิ</span>
@@ -153,19 +196,30 @@ export default function CartPage() {
               </div>
 
               {/* ช่องใส่ Promo Code */}
-              <div className="flex gap-3">
-                <div className="flex-1 flex items-center bg-[#F0F0F0] rounded-full px-4 py-3">
-                  <Tag className="w-5 h-5 text-gray-500 mr-2" />
-                  <input 
-                    type="text" 
-                    placeholder="ใส่โค้ดส่วนลด" 
-                    className="bg-transparent border-none outline-none w-full text-sm placeholder-gray-500 text-black"
-                  />
+              {!appliedCoupon && (
+                <div className="space-y-2">
+                  <div className="flex gap-3">
+                    <div className="flex-1 flex items-center bg-[#F0F0F0] rounded-full px-4 py-3">
+                      <Tag className="w-5 h-5 text-gray-500 mr-2" />
+                      <input 
+                        type="text" 
+                        placeholder="ใส่โค้ดส่วนลด" 
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value)}
+                        className="bg-transparent border-none outline-none w-full text-sm placeholder-gray-500 text-black uppercase"
+                      />
+                    </div>
+                    <button 
+                      onClick={handleApplyCoupon}
+                      disabled={isApplyingCoupon || !couponInput.trim()}
+                      className="bg-black text-white px-6 py-3 rounded-full font-medium hover:bg-gray-800 transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      {isApplyingCoupon ? 'กำลังเช็ค...' : 'ใช้โค้ด'}
+                    </button>
+                  </div>
+                  {couponError && <p className="text-red-500 text-xs px-4">{couponError}</p>}
                 </div>
-                <button className="bg-black text-white px-6 py-3 rounded-full font-medium hover:bg-gray-800 transition-colors cursor-pointer">
-                  ใช้โค้ด
-                </button>
-              </div>
+              )}
 
               {/* ปุ่ม Checkout */}
               <button 
