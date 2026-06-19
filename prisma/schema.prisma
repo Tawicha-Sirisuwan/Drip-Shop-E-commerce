@@ -25,6 +25,7 @@ model User {
   
   orders        Order[]
   addresses     Address[]
+  reviews       Review[]
 }
 
 model Category {
@@ -72,6 +73,7 @@ model Product {
 
   orderItems  OrderItem[]
   variants    ProductVariant[]
+  reviews     Review[]
 }
 
 model ProductVariant {
@@ -150,3 +152,18 @@ model OrderItem {
   @@index([productId])
   @@index([variantId])
 }
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      // 1-5
+  comment   String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId])
+}
+

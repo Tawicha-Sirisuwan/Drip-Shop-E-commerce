@@ -11,7 +11,7 @@ interface ProductPageProps {
 
 // ประเภทข้อมูลสินค้าที่แปลง Decimal เป็น number แล้ว เพื่อส่งข้ามไปยัง Client Component ได้
 type SerializedProduct = Omit<
-  Prisma.ProductGetPayload<{ include: { variants: true; category: true } }>,
+  Prisma.ProductGetPayload<{ include: { variants: true; category: true; reviews: { include: { user: { select: { name: true } } } } } }>,
   'price'
 > & { price: number }
 
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: ProductPageProps) {
 }
 
 // คอมโพเนนต์แบบ Server ที่ดึงข้อมูลและส่งต่อให้ Client
-export default async function ProductDetailPage({ params }: ProductPageProps) {
+export default async function ProductDetailPage({ params }: Readonly<ProductPageProps>) {
   // Next.js 15: params ถูกส่งมาเป็น Promise เราต้อง await ก่อนนำไปใช้
   const { slug } = await params;
 
@@ -46,6 +46,14 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     include: {
       category: true,
       variants: true, // ดึงตัวเลือกสินค้ามาใช้งาน
+      reviews: {
+        include: {
+          user: {
+            select: { name: true }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      }
     },
   });
 
