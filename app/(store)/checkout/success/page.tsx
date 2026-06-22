@@ -36,10 +36,29 @@ export default async function CheckoutSuccessPage(props: {
       // ป้องกันปัญหาลูกค้ารีเฟรชหน้า Success แล้วสต็อกโดนตัดซ้ำ
       if (order?.status === "PENDING") {
         await prisma.$transaction(async (tx) => {
-          // อัปเดตสถานะเป็น PAID
+          // Parse shipping address
+          let shippingAddressStr = null;
+          if (session.customer_details?.address) {
+            const addr = session.customer_details.address;
+            const addressObj = {
+              name: session.customer_details.name || "",
+              phone: session.customer_details.phone || "",
+              street: addr.line1 || "",
+              subdistrict: addr.line2 || "",
+              district: addr.city || "",
+              province: addr.state || "",
+              postalCode: addr.postal_code || "",
+            };
+            shippingAddressStr = JSON.stringify(addressObj);
+          }
+
+          // อัปเดตสถานะเป็น PAID และบันทึกที่อยู่
           await tx.order.update({
             where: { id: order.id },
-            data: { status: "PAID" },
+            data: { 
+              status: "PAID",
+              ...(shippingAddressStr ? { shippingAddress: shippingAddressStr } : {})
+            },
           });
 
           // วนลูปตัดสต็อกสินค้า

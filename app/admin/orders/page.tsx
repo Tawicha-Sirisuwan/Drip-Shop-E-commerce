@@ -138,9 +138,9 @@ export default async function OrdersPage(props: { readonly searchParams: Promise
                     <div className="flex items-center justify-end gap-3">
                       <OrderStatusSelect orderId={order.id} initialStatus={order.status} />
                       
-                      <button className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded-md transition" title="View Details">
+                      <Link href={`/admin/orders/${order.id}`} className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded-md transition" title="View Details">
                         <Eye className="w-4 h-4" />
-                      </button>
+                      </Link>
                     </div>
                   </td>
                 </tr>

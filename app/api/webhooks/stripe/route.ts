@@ -39,10 +39,29 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       const orderId = session.client_reference_id;
 
       if (orderId) {
-        // อัปเดตสถานะออเดอร์เป็น PAID ทันทีที่จ่ายเงินสำเร็จ
+        // Parse shipping address
+        let shippingAddressStr = null;
+        if (session.customer_details?.address) {
+          const addr = session.customer_details.address;
+          const addressObj = {
+            name: session.customer_details.name || "",
+            phone: session.customer_details.phone || "",
+            street: addr.line1 || "",
+            subdistrict: addr.line2 || "",
+            district: addr.city || "",
+            province: addr.state || "",
+            postalCode: addr.postal_code || "",
+          };
+          shippingAddressStr = JSON.stringify(addressObj);
+        }
+
+        // อัปเดตสถานะออเดอร์เป็น PAID ทันทีที่จ่ายเงินสำเร็จ พร้อมบันทึกที่อยู่จัดส่ง
         await prisma.order.update({
           where: { id: orderId },
-          data: { status: "PAID" },
+          data: { 
+            status: "PAID",
+            ...(shippingAddressStr ? { shippingAddress: shippingAddressStr } : {})
+          },
         });
 
         // ดึงรายการสินค้าทั้งหมดในออเดอร์นี้
