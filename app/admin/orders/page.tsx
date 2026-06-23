@@ -4,21 +4,27 @@ import { Filter, Download, Eye, Truck, Package, PackageCheck, AlertCircle } from
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, Prisma } from '@prisma/client';
 import OrderStatusSelect from './OrderStatusSelect';
+import { AdminSearch } from '../_components/AdminSearch';
+import { AdminPagination } from '../_components/AdminPagination';
 
 export default async function OrdersPage(props: { readonly searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   // 1. Check RBAC
   const session = await auth();
-  if ((session?.user as any)?.role !== "ADMIN") {
+  if ((session?.user as { role?: string })?.role !== "ADMIN") {
     redirect("/");
   }
 
   const searchParams = await props.searchParams;
   const currentStatus = typeof searchParams.status === 'string' ? searchParams.status : 'all';
+  const page = Number(searchParams.page) || 1;
+  const search = typeof searchParams.search === 'string' ? searchParams.search : '';
+  const limit = 10;
+  const skip = (page - 1) * limit;
 
   // 2. Build Prisma condition based on tabs
-  const whereCondition: any = {};
+  const whereCondition: Prisma.OrderWhereInput = {};
   if (currentStatus === 'pending') {
     whereCondition.status = 'PENDING';
   } else if (currentStatus === 'processing') {
@@ -29,6 +35,17 @@ export default async function OrdersPage(props: { readonly searchParams: Promise
     whereCondition.status = 'DELIVERED';
   }
 
+  if (search) {
+    whereCondition.OR = [
+      { id: { contains: search, mode: 'insensitive' } },
+      { user: { name: { contains: search, mode: 'insensitive' } } },
+      { user: { email: { contains: search, mode: 'insensitive' } } },
+    ];
+  }
+
+  const totalItems = await prisma.order.count({ where: whereCondition });
+  const totalPages = Math.ceil(totalItems / limit);
+
   // 3. Fetch real orders from Database
   const orders = await prisma.order.findMany({
     where: whereCondition,
@@ -36,7 +53,9 @@ export default async function OrdersPage(props: { readonly searchParams: Promise
       user: { select: { name: true, email: true } },
       orderItems: true,
     },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
+    skip,
+    take: limit,
   });
 
   const getStatusIconAndStyle = (status: OrderStatus) => {
@@ -78,11 +97,12 @@ export default async function OrdersPage(props: { readonly searchParams: Promise
         </div>
         
         {/* Filter Buttons */}
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <button className="border border-[#E5E5E5] text-black px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-gray-50 transition w-full md:w-auto justify-center">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <AdminSearch placeholder="ค้นหา Order ID, ชื่อลูกค้า..." />
+          <button className="border border-[#E5E5E5] text-black px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-gray-50 transition w-full md:w-auto justify-center hidden sm:flex">
             <Filter className="w-4 h-4" /> Filters
           </button>
-          <button className="border border-[#E5E5E5] text-black px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-gray-50 transition w-full md:w-auto justify-center">
+          <button className="border border-[#E5E5E5] text-black px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-gray-50 transition w-full md:w-auto justify-center hidden sm:flex">
             <Download className="w-4 h-4" /> Export
           </button>
         </div>
@@ -157,6 +177,7 @@ export default async function OrdersPage(props: { readonly searchParams: Promise
             </tbody>
           </table>
         </div>
+        <AdminPagination currentPage={page} totalPages={totalPages} totalItems={totalItems} itemsPerPage={limit} />
       </div>
     </div>
   );

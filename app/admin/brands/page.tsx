@@ -3,17 +3,41 @@ import { PlusCircle, Briefcase } from 'lucide-react'
 import prisma from '@/lib/prisma'
 import { BrandActions } from './_components/BrandActions'
 
+import { Prisma } from '@prisma/client'
+import { AdminSearch } from '../_components/AdminSearch'
+import { AdminPagination } from '../_components/AdminPagination'
+
 export const dynamic = 'force-dynamic'
 
 // หน้าแสดงรายการแบรนด์ทั้งหมด ดึงข้อมูลตรงจาก Prisma (Server Component)
-export default async function AdminBrandsPage() {
+export default async function AdminBrandsPage(props: { readonly searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const searchParams = await props.searchParams;
+  const page = Number(searchParams.page) || 1;
+  const search = typeof searchParams.search === 'string' ? searchParams.search : '';
+  const limit = 10;
+  const skip = (page - 1) * limit;
+
+  const whereCondition: Prisma.BrandWhereInput = {};
+  if (search) {
+    whereCondition.OR = [
+      { name: { contains: search, mode: 'insensitive' } },
+      { slug: { contains: search, mode: 'insensitive' } },
+    ];
+  }
+
+  const totalItems = await prisma.brand.count({ where: whereCondition });
+  const totalPages = Math.ceil(totalItems / limit);
+
   const brands = await prisma.brand.findMany({
+    where: whereCondition,
     include: {
       _count: {
         select: { products: true }
       }
     },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
+    skip,
+    take: limit,
   })
 
   return (
@@ -21,12 +45,15 @@ export default async function AdminBrandsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h1 className="font-display text-2xl uppercase">Brands</h1>
-        <Link 
-          href="/admin/brands/create" 
-          className="bg-black text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-gray-800 transition w-full sm:w-auto justify-center"
-        >
-          <PlusCircle className="w-4 h-4" /> Add Brand
-        </Link>
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <AdminSearch placeholder="ค้นหาแบรนด์ (ชื่อ, Slug)..." />
+          <Link 
+            href="/admin/brands/create" 
+            className="bg-black text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-gray-800 transition w-full sm:w-auto justify-center"
+          >
+            <PlusCircle className="w-4 h-4" /> Add Brand
+          </Link>
+        </div>
       </div>
 
       {/* Brands Table */}
@@ -81,6 +108,7 @@ export default async function AdminBrandsPage() {
             </tbody>
           </table>
         </div>
+        <AdminPagination currentPage={page} totalPages={totalPages} totalItems={totalItems} itemsPerPage={limit} />
       </div>
     </div>
   )

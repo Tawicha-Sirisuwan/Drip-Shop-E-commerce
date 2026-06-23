@@ -4,23 +4,47 @@ import prisma from '@/lib/prisma'
 import { CouponActions } from './_components/CouponActions'
 import dayjs from 'dayjs'
 
+import { Prisma } from '@prisma/client'
+import { AdminSearch } from '../_components/AdminSearch'
+import { AdminPagination } from '../_components/AdminPagination'
+
 export const dynamic = 'force-dynamic'
 
-export default async function AdminCouponsPage() {
+export default async function AdminCouponsPage(props: { readonly searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const searchParams = await props.searchParams;
+  const page = Number(searchParams.page) || 1;
+  const search = typeof searchParams.search === 'string' ? searchParams.search : '';
+  const limit = 10;
+  const skip = (page - 1) * limit;
+
+  const whereCondition: Prisma.CouponWhereInput = {};
+  if (search) {
+    whereCondition.code = { contains: search, mode: 'insensitive' };
+  }
+
+  const totalItems = await prisma.coupon.count({ where: whereCondition });
+  const totalPages = Math.ceil(totalItems / limit);
+
   const coupons = await prisma.coupon.findMany({
-    orderBy: { createdAt: 'desc' }
+    where: whereCondition,
+    orderBy: { createdAt: 'desc' },
+    skip,
+    take: limit,
   })
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h1 className="font-display text-2xl uppercase">โค้ดส่วนลด</h1>
-        <Link 
-          href="/admin/coupons/create" 
-          className="bg-black text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-gray-800 transition w-full sm:w-auto justify-center"
-        >
-          <PlusCircle className="w-4 h-4" /> สร้างโค้ดส่วนลด
-        </Link>
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <AdminSearch placeholder="ค้นหาโค้ดส่วนลด..." />
+          <Link 
+            href="/admin/coupons/create" 
+            className="bg-black text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-gray-800 transition w-full sm:w-auto justify-center"
+          >
+            <PlusCircle className="w-4 h-4" /> สร้างโค้ดส่วนลด
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-[#E5E5E5] shadow-sm overflow-hidden mb-6">
@@ -81,6 +105,7 @@ export default async function AdminCouponsPage() {
             </tbody>
           </table>
         </div>
+        <AdminPagination currentPage={page} totalPages={totalPages} totalItems={totalItems} itemsPerPage={limit} />
       </div>
     </div>
   )

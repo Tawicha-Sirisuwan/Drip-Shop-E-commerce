@@ -3,16 +3,40 @@ import { PlusCircle, Tag } from 'lucide-react'
 import prisma from '@/lib/prisma'
 import { CategoryActions } from './_components/CategoryActions'
 
+import { Prisma } from '@prisma/client'
+import { AdminSearch } from '../_components/AdminSearch'
+import { AdminPagination } from '../_components/AdminPagination'
+
 export const dynamic = 'force-dynamic'
 
-export default async function AdminCategoriesPage() {
+export default async function AdminCategoriesPage(props: { readonly searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const searchParams = await props.searchParams;
+  const page = Number(searchParams.page) || 1;
+  const search = typeof searchParams.search === 'string' ? searchParams.search : '';
+  const limit = 10;
+  const skip = (page - 1) * limit;
+
+  const whereCondition: Prisma.CategoryWhereInput = {};
+  if (search) {
+    whereCondition.OR = [
+      { name: { contains: search, mode: 'insensitive' } },
+      { slug: { contains: search, mode: 'insensitive' } },
+    ];
+  }
+
+  const totalItems = await prisma.category.count({ where: whereCondition });
+  const totalPages = Math.ceil(totalItems / limit);
+
   const categories = await prisma.category.findMany({
+    where: whereCondition,
     include: {
       _count: {
         select: { products: true }
       }
     },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
+    skip,
+    take: limit,
   })
 
   return (
@@ -20,12 +44,15 @@ export default async function AdminCategoriesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h1 className="font-display text-2xl uppercase">Categories</h1>
-        <Link 
-          href="/admin/categories/create" 
-          className="bg-black text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-gray-800 transition w-full sm:w-auto justify-center"
-        >
-          <PlusCircle className="w-4 h-4" /> Add Category
-        </Link>
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <AdminSearch placeholder="ค้นหาหมวดหมู่ (ชื่อ, Slug)..." />
+          <Link 
+            href="/admin/categories/create" 
+            className="bg-black text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-gray-800 transition w-full sm:w-auto justify-center"
+          >
+            <PlusCircle className="w-4 h-4" /> Add Category
+          </Link>
+        </div>
       </div>
 
       {/* Categories Table */}
@@ -77,6 +104,7 @@ export default async function AdminCategoriesPage() {
             </tbody>
           </table>
         </div>
+        <AdminPagination currentPage={page} totalPages={totalPages} totalItems={totalItems} itemsPerPage={limit} />
       </div>
     </div>
   )
