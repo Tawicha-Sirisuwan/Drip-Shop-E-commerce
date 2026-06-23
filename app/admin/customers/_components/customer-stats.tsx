@@ -14,7 +14,7 @@ export function CustomerStats({ total, active, vip }: CustomerStatsProps) {
           <Users className="w-6 h-6" />
         </div>
         <div>
-          <p className="text-sm text-gray-500 font-medium">Total Customers</p>
+          <p className="text-sm text-gray-500 font-medium">ลูกค้าทั้งหมด</p>
           <h3 className="font-black text-xl mt-0.5">{total.toLocaleString()}</h3>
         </div>
       </div>
@@ -23,7 +23,7 @@ export function CustomerStats({ total, active, vip }: CustomerStatsProps) {
           <UserCheck className="w-6 h-6" />
         </div>
         <div>
-          <p className="text-sm text-gray-500 font-medium">Active Members</p>
+          <p className="text-sm text-gray-500 font-medium">ลูกค้าประจำ</p>
           <h3 className="font-black text-xl mt-0.5">{active.toLocaleString()}</h3>
         </div>
       </div>
@@ -32,7 +32,7 @@ export function CustomerStats({ total, active, vip }: CustomerStatsProps) {
           <Star className="w-6 h-6" />
         </div>
         <div>
-          <p className="text-sm text-gray-500 font-medium">VIP Customers</p>
+          <p className="text-sm text-gray-500 font-medium">ลูกค้าระดับ VIP</p>
           <h3 className="font-black text-xl mt-0.5">{vip.toLocaleString()}</h3>
         </div>
       </div>

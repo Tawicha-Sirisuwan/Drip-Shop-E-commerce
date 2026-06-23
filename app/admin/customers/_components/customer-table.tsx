@@ -28,8 +28,9 @@ interface CustomerTableProps {
   totalFiltered: number;
 }
 
-export function CustomerTable({ customers, totalPages, currentPage, totalFiltered }: CustomerTableProps) {
+export function CustomerTable({ customers, totalPages, currentPage, totalFiltered }: CustomerTableProps ) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -62,7 +63,7 @@ export function CustomerTable({ customers, totalPages, currentPage, totalFiltere
   };
 
   const openProfile = (id: string) => {
-    // Pass id to context or state when implemented fully
+    setSelectedCustomerId(id);
     setIsDrawerOpen(true);
   };
 
@@ -78,27 +79,27 @@ export function CustomerTable({ customers, totalPages, currentPage, totalFiltere
         <div className="flex items-center gap-2 w-full xl:w-auto overflow-x-auto no-scrollbar pb-1 xl:pb-0">
           <button 
             onClick={() => handleFilterClick("all")}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition ${currentFilter === "all" ? "bg-gray-100 text-black" : "text-gray-500 hover:bg-gray-100 hover:text-black"}`}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition ${currentFilter === "all" ? "bg-gray-100 text-black" : "text-gray-500 hover:bg-gray-100 hover:text-black cursor-pointer"}`}
           >
-            All Customers
+            ลูกค้าทั้งหมด
           </button>
           <button 
             onClick={() => handleFilterClick("new")}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition ${currentFilter === "new" ? "bg-gray-100 text-black" : "text-gray-500 hover:bg-gray-100 hover:text-black"}`}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition ${currentFilter === "new" ? "bg-gray-100 text-black" : "text-gray-500 hover:bg-gray-100 hover:text-black cursor-pointer"}`}
           >
-            New
+            ลูกค้าใหม่
           </button>
           <button 
             onClick={() => handleFilterClick("vip")}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition flex items-center ${currentFilter === "vip" ? "bg-gray-100 text-black" : "text-gray-500 hover:bg-gray-100 hover:text-black"}`}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition flex items-center ${currentFilter === "vip" ? "bg-gray-100 text-black" : "text-gray-500 hover:bg-gray-100 hover:text-black cursor-pointer"}`}
           >
             VIP <Star className="w-3 h-3 text-yellow-500 ml-1 fill-current" />
           </button>
           <button 
             onClick={() => handleFilterClick("inactive")}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition ${currentFilter === "inactive" ? "bg-gray-100 text-black" : "text-gray-500 hover:bg-gray-100 hover:text-black"}`}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition ${currentFilter === "inactive" ? "bg-gray-100 text-black" : "text-gray-500 hover:bg-gray-100 hover:text-black cursor-pointer"}`}
           >
-            Inactive
+            ไม่เคลื่อนไหว
           </button>
         </div>
         
@@ -108,7 +109,7 @@ export function CustomerTable({ customers, totalPages, currentPage, totalFiltere
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search customers..." 
+              placeholder="ค้นหาชื่อหรืออีเมลลูกค้า..." 
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               className="w-full pl-9 pr-4 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
@@ -123,19 +124,19 @@ export function CustomerTable({ customers, totalPages, currentPage, totalFiltere
           <table className="w-full min-w-[1000px] text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-y border-gray-200">
-                <th className="px-6 py-4 font-medium">Customer</th>
-                <th className="px-6 py-4 font-medium">Contact</th>
-                <th className="px-6 py-4 font-medium text-center">Orders</th>
-                <th className="px-6 py-4 font-medium">Total Spent</th>
-                <th className="px-6 py-4 font-medium">Status</th>
-                <th className="px-6 py-4 font-medium text-right">Actions</th>
+                <th className="px-6 py-4 font-medium">ข้อมูลลูกค้า</th>
+                <th className="px-6 py-4 font-medium">ข้อมูลติดต่อ</th>
+                <th className="px-6 py-4 font-medium text-center">คำสั่งซื้อ</th>
+                <th className="px-6 py-4 font-medium">ยอดใช้จ่ายรวม</th>
+                <th className="px-6 py-4 font-medium">สถานะ</th>
+                <th className="px-6 py-4 font-medium text-right">จัดการ</th>
               </tr>
             </thead>
             <tbody className="text-sm divide-y divide-gray-100">
               {customers.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                    No customers found matching your criteria.
+                    ไม่พบลูกค้าที่ตรงกับเงื่อนไขการค้นหา
                   </td>
                 </tr>
               ) : (
@@ -148,7 +149,7 @@ export function CustomerTable({ customers, totalPages, currentPage, totalFiltere
                         </div>
                         <div>
                           <button onClick={() => openProfile(customer.id)} className="font-bold text-black hover:underline text-left">{customer.name}</button>
-                          <p className="text-xs text-gray-500">Joined {customer.joined}</p>
+                          <p className="text-xs text-gray-500">สมัครเมื่อ {customer.joined}</p>
                         </div>
                       </div>
                     </td>
@@ -167,7 +168,7 @@ export function CustomerTable({ customers, totalPages, currentPage, totalFiltere
                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button 
                           onClick={() => openProfile(customer.id)} 
-                          className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded-md transition" 
+                          className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded-md transition cursor-pointer" 
                           title="View Profile"
                         >
                           <Eye className="w-5 h-5" />
@@ -184,7 +185,7 @@ export function CustomerTable({ customers, totalPages, currentPage, totalFiltere
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-            <p className="text-sm text-gray-500">Showing <span className="font-medium text-black">{startRecord}</span> to <span className="font-medium text-black">{endRecord}</span> of <span className="font-medium text-black">{totalFiltered}</span> customers</p>
+            <p className="text-sm text-gray-500">แสดง <span className="font-medium text-black">{startRecord}</span> ถึง <span className="font-medium text-black">{endRecord}</span> จาก <span className="font-medium text-black">{totalFiltered}</span> รายการ</p>
             <div className="flex items-center gap-1">
               <button 
                 onClick={() => router.push(pathname + "?" + createQueryString("page", (currentPage - 1).toString()))}
@@ -193,7 +194,7 @@ export function CustomerTable({ customers, totalPages, currentPage, totalFiltere
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="text-sm font-medium text-gray-500 px-2">Page {currentPage} of {totalPages}</span>
+              <span className="text-sm font-medium text-gray-500 px-2">หน้า {currentPage} จาก {totalPages}</span>
               <button 
                 onClick={() => router.push(pathname + "?" + createQueryString("page", (currentPage + 1).toString()))}
                 disabled={currentPage === totalPages}
@@ -207,7 +208,7 @@ export function CustomerTable({ customers, totalPages, currentPage, totalFiltere
       </div>
 
       {/* Drawer */}
-      <CustomerProfileSheet isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
+      <CustomerProfileSheet isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} customerId={selectedCustomerId} />
     </>
   );
 }
