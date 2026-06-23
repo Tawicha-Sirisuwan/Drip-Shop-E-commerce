@@ -1,123 +1,119 @@
 "use client";
 
 import { useState } from "react";
-import { Star, ListFilter, Filter, Eye, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, Eye, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { CustomerProfileSheet } from "./customer-profile-sheet";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
-// Mock data based on example.html
-const MOCK_CUSTOMERS = [
-  {
-    id: "1",
-    name: "Alex Morgan",
-    initials: "AM",
-    avatarBg: "bg-blue-100",
-    avatarText: "text-blue-700",
-    joined: "May 2024",
-    email: "alex@example.com",
-    phone: "+1 (555) 123-4567",
-    location: "New York, USA",
-    orders: 12,
-    spent: "$1,450.00",
-    status: "Active",
-    statusBg: "bg-green-100",
-    statusText: "text-green-800",
-    vip: false,
-    avatar: null,
-  },
-  {
-    id: "2",
-    name: "Sarah Connor",
-    joined: "Jan 2023",
-    email: "sarah.c@example.com",
-    phone: "+44 7700 900077",
-    location: "London, UK",
-    orders: 45,
-    spent: "$8,320.50",
-    status: "VIP",
-    statusBg: "bg-yellow-100",
-    statusText: "text-yellow-800",
-    vip: true,
-    avatar: "https://i.pravatar.cc/150?img=47",
-  },
-  {
-    id: "3",
-    name: "David Miller",
-    initials: "DM",
-    avatarBg: "bg-orange-100",
-    avatarText: "text-orange-700",
-    joined: "Aug 2025",
-    email: "david.m@example.com",
-    phone: "+61 412 345 678",
-    location: "Sydney, AU",
-    orders: 1,
-    spent: "$85.00",
-    status: "Inactive",
-    statusBg: "bg-gray-100",
-    statusText: "text-gray-700",
-    vip: false,
-    avatar: null,
-  },
-  {
-    id: "4",
-    name: "Michael Brown",
-    joined: "Nov 2024",
-    email: "mike_b@example.com",
-    phone: "+1 (555) 987-6543",
-    location: "Chicago, USA",
-    orders: 5,
-    spent: "$450.00",
-    status: "Active",
-    statusBg: "bg-green-100",
-    statusText: "text-green-800",
-    vip: false,
-    avatar: "https://i.pravatar.cc/150?img=12",
-  },
-  {
-    id: "5",
-    name: "Emily Chen",
-    initials: "EC",
-    avatarBg: "bg-pink-100",
-    avatarText: "text-pink-700",
-    joined: "Feb 2022",
-    email: "emily.chen@example.com",
-    phone: "+65 9123 4567",
-    location: "Singapore",
-    orders: 28,
-    spent: "$5,210.00",
-    status: "VIP",
-    statusBg: "bg-yellow-100",
-    statusText: "text-yellow-800",
-    vip: true,
-    avatar: null,
-  },
-];
+export interface CustomerData {
+  id: string;
+  name: string;
+  initials: string;
+  email: string;
+  joined: string;
+  orders: number;
+  spent: string;
+  status: string;
+  vip: boolean;
+  avatarBg: string;
+  avatarText: string;
+  statusBg: string;
+  statusText: string;
+}
 
-export function CustomerTable() {
+interface CustomerTableProps {
+  customers: CustomerData[];
+  totalPages: number;
+  currentPage: number;
+  totalFiltered: number;
+}
+
+export function CustomerTable({ customers, totalPages, currentPage, totalFiltered }: CustomerTableProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const currentFilter = searchParams.get("filter") || "all";
+  const currentSearch = searchParams.get("search") || "";
+  const [searchValue, setSearchValue] = useState(currentSearch);
+
+  const createQueryString = (name: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set(name, value);
+    } else {
+      params.delete(name);
+    }
+    // Reset page to 1 when filter or search changes
+    if (name !== "page") {
+      params.set("page", "1");
+    }
+    return params.toString();
+  };
+
+  const handleFilterClick = (filter: string) => {
+    router.push(pathname + "?" + createQueryString("filter", filter === "all" ? "" : filter));
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push(pathname + "?" + createQueryString("search", searchValue));
+  };
+
+  const openProfile = (id: string) => {
+    // Pass id to context or state when implemented fully
+    setIsDrawerOpen(true);
+  };
+
+  const startRecord = totalFiltered === 0 ? 0 : (currentPage - 1) * 10 + 1;
+  const endRecord = Math.min(currentPage * 10, totalFiltered);
 
   return (
     <>
       {/* Filters & Actions Bar */}
-      <div className="bg-white p-4 rounded-t-2xl border border-gray-200 border-b-0 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white p-4 rounded-t-2xl border border-gray-200 border-b-0 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
         
         {/* Status Tabs */}
-        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto no-scrollbar pb-1 md:pb-0">
-          <button className="px-4 py-1.5 bg-gray-100 text-black rounded-full text-sm font-medium whitespace-nowrap">All Customers</button>
-          <button className="px-4 py-1.5 text-gray-500 hover:bg-gray-100 hover:text-black rounded-full text-sm font-medium whitespace-nowrap transition">New</button>
-          <button className="px-4 py-1.5 text-gray-500 hover:bg-gray-100 hover:text-black rounded-full text-sm font-medium whitespace-nowrap transition flex items-center">
+        <div className="flex items-center gap-2 w-full xl:w-auto overflow-x-auto no-scrollbar pb-1 xl:pb-0">
+          <button 
+            onClick={() => handleFilterClick("all")}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition ${currentFilter === "all" ? "bg-gray-100 text-black" : "text-gray-500 hover:bg-gray-100 hover:text-black"}`}
+          >
+            All Customers
+          </button>
+          <button 
+            onClick={() => handleFilterClick("new")}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition ${currentFilter === "new" ? "bg-gray-100 text-black" : "text-gray-500 hover:bg-gray-100 hover:text-black"}`}
+          >
+            New
+          </button>
+          <button 
+            onClick={() => handleFilterClick("vip")}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition flex items-center ${currentFilter === "vip" ? "bg-gray-100 text-black" : "text-gray-500 hover:bg-gray-100 hover:text-black"}`}
+          >
             VIP <Star className="w-3 h-3 text-yellow-500 ml-1 fill-current" />
           </button>
-          <button className="px-4 py-1.5 text-gray-500 hover:bg-gray-100 hover:text-black rounded-full text-sm font-medium whitespace-nowrap transition">Inactive</button>
+          <button 
+            onClick={() => handleFilterClick("inactive")}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition ${currentFilter === "inactive" ? "bg-gray-100 text-black" : "text-gray-500 hover:bg-gray-100 hover:text-black"}`}
+          >
+            Inactive
+          </button>
         </div>
         
-        {/* Filter Buttons */}
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <button className="border border-gray-200 text-black px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-gray-50 transition w-full md:w-auto justify-center">
-            <ListFilter className="w-5 h-5" /> Sort
-          </button>
-          <button className="border border-gray-200 text-black px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-gray-50 transition w-full md:w-auto justify-center">
-            <Filter className="w-5 h-5" /> Filters
-          </button>
+        {/* Search & Buttons */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
+          <form onSubmit={handleSearch} className="relative w-full sm:w-64">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Search customers..." 
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              className="w-full pl-9 pr-4 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
+            />
+          </form>
         </div>
       </div>
 
@@ -127,12 +123,8 @@ export function CustomerTable() {
           <table className="w-full min-w-[1000px] text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-y border-gray-200">
-                <th className="px-6 py-4 w-12 text-center">
-                  <input type="checkbox" className="rounded border-gray-300 text-black focus:ring-black" />
-                </th>
                 <th className="px-6 py-4 font-medium">Customer</th>
                 <th className="px-6 py-4 font-medium">Contact</th>
-                <th className="px-6 py-4 font-medium">Location</th>
                 <th className="px-6 py-4 font-medium text-center">Orders</th>
                 <th className="px-6 py-4 font-medium">Total Spent</th>
                 <th className="px-6 py-4 font-medium">Status</th>
@@ -140,76 +132,78 @@ export function CustomerTable() {
               </tr>
             </thead>
             <tbody className="text-sm divide-y divide-gray-100">
-              {MOCK_CUSTOMERS.map((customer) => (
-                <tr key={customer.id} className="hover:bg-gray-50 transition group">
-                  <td className="px-6 py-4 text-center">
-                    <input type="checkbox" className="rounded border-gray-300 text-black focus:ring-black" />
+              {customers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    No customers found matching your criteria.
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      {customer.avatar ? (
-                        <img src={customer.avatar} alt="Avatar" className="w-10 h-10 rounded-full object-cover" />
-                      ) : (
+                </tr>
+              ) : (
+                customers.map((customer) => (
+                  <tr key={customer.id} className="hover:bg-gray-50 transition group">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${customer.avatarBg} ${customer.avatarText}`}>
                           {customer.initials}
                         </div>
-                      )}
-                      <div>
-                        <button onClick={() => setIsDrawerOpen(true)} className="font-bold text-black hover:underline text-left">{customer.name}</button>
-                        <p className="text-xs text-gray-500">Joined {customer.joined}</p>
+                        <div>
+                          <button onClick={() => openProfile(customer.id)} className="font-bold text-black hover:underline text-left">{customer.name}</button>
+                          <p className="text-xs text-gray-500">Joined {customer.joined}</p>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-black font-medium">{customer.email}</p>
-                    <p className="text-xs text-gray-500">{customer.phone}</p>
-                  </td>
-                  <td className="px-6 py-4 text-gray-500">{customer.location}</td>
-                  <td className="px-6 py-4 text-center font-bold text-black">{customer.orders}</td>
-                  <td className="px-6 py-4 font-medium text-black">{customer.spent}</td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${customer.statusBg} ${customer.statusText}`}>
-                      {customer.vip && <Star className="w-3 h-3 mr-1 text-yellow-600 fill-current" />} 
-                      {customer.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button 
-                        onClick={() => setIsDrawerOpen(true)} 
-                        className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded-md transition" 
-                        title="View Profile"
-                      >
-                        <Eye className="w-5 h-5" />
-                      </button>
-                      <button className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded-md transition" title="Edit">
-                        <Pencil className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-black font-medium">{customer.email}</p>
+                    </td>
+                    <td className="px-6 py-4 text-center font-bold text-black">{customer.orders}</td>
+                    <td className="px-6 py-4 font-medium text-black">{customer.spent}</td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${customer.statusBg} ${customer.statusText}`}>
+                        {customer.vip && <Star className="w-3 h-3 mr-1 text-yellow-600 fill-current" />} 
+                        {customer.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => openProfile(customer.id)} 
+                          className="p-1.5 text-gray-400 hover:text-black hover:bg-gray-100 rounded-md transition" 
+                          title="View Profile"
+                        >
+                          <Eye className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
         {/* Pagination */}
-        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-          <p className="text-sm text-gray-500">Showing <span className="font-medium text-black">1</span> to <span className="font-medium text-black">5</span> of <span className="font-medium text-black">8,432</span> customers</p>
-          <div className="flex items-center gap-1">
-            <button className="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-400 hover:text-black hover:border-gray-300 disabled:opacity-50" disabled>
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded bg-black text-white font-medium text-sm">1</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded border border-transparent text-gray-500 hover:bg-gray-100 font-medium text-sm transition">2</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded border border-transparent text-gray-500 hover:bg-gray-100 font-medium text-sm transition">3</button>
-            <span className="px-2 text-gray-400">...</span>
-            <button className="w-8 h-8 flex items-center justify-center rounded border border-transparent text-gray-500 hover:bg-gray-100 font-medium text-sm transition">1687</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-600 hover:text-black hover:border-gray-300 transition">
-              <ChevronRight className="w-4 h-4" />
-            </button>
+        {totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+            <p className="text-sm text-gray-500">Showing <span className="font-medium text-black">{startRecord}</span> to <span className="font-medium text-black">{endRecord}</span> of <span className="font-medium text-black">{totalFiltered}</span> customers</p>
+            <div className="flex items-center gap-1">
+              <button 
+                onClick={() => router.push(pathname + "?" + createQueryString("page", (currentPage - 1).toString()))}
+                disabled={currentPage === 1}
+                className="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-400 hover:text-black hover:border-gray-300 disabled:opacity-50"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="text-sm font-medium text-gray-500 px-2">Page {currentPage} of {totalPages}</span>
+              <button 
+                onClick={() => router.push(pathname + "?" + createQueryString("page", (currentPage + 1).toString()))}
+                disabled={currentPage === totalPages}
+                className="w-8 h-8 flex items-center justify-center rounded border border-gray-200 text-gray-600 hover:text-black hover:border-gray-300 disabled:opacity-50 transition"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Drawer */}
