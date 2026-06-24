@@ -26,6 +26,7 @@ model User {
   orders        Order[]
   addresses     Address[]
   reviews       Review[]
+  coupons       Coupon[]
 }
 
 model Category {
@@ -187,6 +188,10 @@ model Coupon {
   startDate       DateTime?
   expiryDate      DateTime?
   isActive        Boolean      @default(true)
+  
+  userId          String?      // ถ้ามีค่า แปลว่าใช้งานได้เฉพาะ User คนนี้เท่านั้น
+  user            User?        @relation(fields: [userId], references: [id])
+
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 

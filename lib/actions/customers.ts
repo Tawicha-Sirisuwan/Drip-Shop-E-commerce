@@ -7,7 +7,7 @@ import { DiscountType } from "@prisma/client";
 export async function getCustomerProfile(id: string) {
   // Verify auth and RBAC
   const session = await auth();
-  if (!session?.user || session.user.role !== "ADMIN") {
+  if (session?.user?.role !== "ADMIN") {
     throw new Error("Unauthorized");
   }
 
@@ -75,7 +75,7 @@ export async function getCustomerProfile(id: string) {
 
 export async function generateAndSendDiscount(customerId: string, value: number, type: "FIXED" | "PERCENTAGE") {
   const session = await auth();
-  if (!session?.user || session.user.role !== "ADMIN") {
+  if (session?.user?.role !== "ADMIN") {
     throw new Error("Unauthorized");
   }
 
@@ -93,8 +93,9 @@ export async function generateAndSendDiscount(customerId: string, value: number,
       type: type as DiscountType,
       value,
       maxUses: 1,
+      userId: customerId, // ผูกคูปองนี้กับลูกค้ารายนี้เท่านั้น
       isActive: true,
-      expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // หมดอายุใน 30 วัน
     }
   });
 

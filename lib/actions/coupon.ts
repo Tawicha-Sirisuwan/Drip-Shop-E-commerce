@@ -106,10 +106,15 @@ export async function deleteCouponAction(id: string) {
 
 // ตรวจสอบคูปองสำหรับหน้าตะกร้าสินค้า
 export async function validateCouponAction(code: string, cartTotal: number) {
+  const session = await auth();
   const coupon = await prisma.coupon.findUnique({ where: { code: code.toUpperCase() } });
   
-  if (!coupon || !coupon.isActive) {
+  if (!coupon?.isActive) {
     return { success: false, error: "Invalid or expired coupon" };
+  }
+
+  if (coupon.userId && coupon.userId !== session?.user?.id) {
+    return { success: false, error: "This coupon is restricted to a specific user" };
   }
 
   if (coupon.expiryDate && new Date() > coupon.expiryDate) {

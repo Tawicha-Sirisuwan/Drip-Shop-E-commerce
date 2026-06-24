@@ -89,6 +89,9 @@ export async function createCheckoutSession(input: unknown): Promise<{ url: stri
       if (!coupon || !coupon.isActive) {
         throw new Error("Invalid or expired coupon");
       }
+      if (coupon.userId && coupon.userId !== session.user.id) {
+        throw new Error("This coupon is restricted to a specific user");
+      }
       if (coupon.expiryDate && new Date() > coupon.expiryDate) {
         throw new Error("Coupon has expired");
       }
